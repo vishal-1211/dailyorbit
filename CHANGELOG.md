@@ -1,4 +1,4 @@
-# Unreleased (requested 3 Oct 2026) — NOT released
+# Version 2.1.0 — released 3 Oct 2026
 
 1. Proof the model works: scorecard after each edition (predicted vs what was actually opened), "Check the model now" in Sources (language test + taste test, says which model is in use), "Why this?" in the reader.
 2. Source is now a git repository; tests no longer depend on this workspace's paths.
