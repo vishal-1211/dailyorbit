@@ -6,6 +6,7 @@
   "main": "src/main.js",
   "author": "Vishal",
   "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/vishal-1211/AstroGazette.git" },
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win nsis portable",
