@@ -1,6 +1,48 @@
-# The Astro Gazette
+<p align="center">
+  <img src="docs/images/logo.png" width="128" alt="The Astro Gazette logo">
+</p>
 
-Your personal astronomy newspaper for Windows. Press **Generate edition** and it gathers the free-to-read astronomy stories from the sources you pick, reads the full articles, and prints them as a newspaper made for you.
+<h1 align="center">The Astro Gazette</h1>
+
+<p align="center">
+  Your personal astronomy newspaper for Windows.<br>
+  Free to run, learns your taste, and keeps your reading on your laptop.
+</p>
+
+<p align="center">
+  <img alt="version" src="https://img.shields.io/badge/version-2.1.0-e9b65a">
+  <img alt="platform" src="https://img.shields.io/badge/platform-Windows-1b2547">
+  <img alt="licence" src="https://img.shields.io/badge/licence-MIT-green">
+</p>
+
+![Front page](docs/images/cover.jpg)
+
+Press **Generate edition** and the app gathers the free-to-read astronomy stories from the sources you pick, reads the full articles, and prints them as a newspaper made for you.
+
+- **A real paper**: front page, top stories, people, sections, great instruments, quiz and fun page, your sky, back page.
+- **Only free stories**: paywalled articles are detected and skipped.
+- **Learns on the laptop**: from what you open, finish and rate. No paid AI, no cloud.
+- **Private**: the reading windows cannot reach the internet; publishers see a generic reader with no cookies. Optional Tor routing.
+- **Your sky**: Moon, planets, eclipses, space-station passes and asteroid flybys for your location.
+
+| | |
+|---|---|
+| ![Inside pages](docs/images/spread.jpg) | ![Continuous reader](docs/images/continuous-reader.jpg) |
+| ![Fun and quiz page](docs/images/fun-and-quiz.jpg) | ![Day theme](docs/images/day-theme.jpg) |
+
+<sub>Screenshots come from the automated tests, which use made-up stories and placeholder pictures.</sub>
+
+## Documentation
+
+| Document | About |
+|---|---|
+| [Architecture](docs/ARCHITECTURE.md) | The parts of the app and how an edition is printed |
+| [Data model](docs/DATA-MODEL.md) | ER diagram of everything stored on disk |
+| [Privacy design](docs/PRIVACY.md) | What stays local, what a publisher can see, how it is enforced |
+| [How the paper learns](docs/LEARNING.md) | The on-device model and how to check it |
+| [Development](docs/DEVELOPMENT.md) | Run from source, tests, building the installer, release steps |
+| [Changelog](CHANGELOG.md) | What changed in each version |
+| [Contributing](CONTRIBUTING.md) | Ground rules for changes |
 
 ## Getting started
 
