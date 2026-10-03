@@ -1,0 +1,21 @@
+const fs = require('fs'), vm = require('vm'), assert = require('assert'), path = require('path');
+const R = (f) => fs.readFileSync(path.join(__dirname, '../src/renderer', f), 'utf8');
+const win = { console, Date, Math, Float32Array, Intl }; win.window = win; win.globalThis = win; vm.createContext(win);
+vm.runInContext(R('vendor/astronomy.min.js'), win); vm.runInContext(R('vendor/satellite.min.js') + ';window.satellite=satellite;', win);
+vm.runInContext(R('content.js'), win); vm.runInContext(R('skyevents.js'), win);
+const now = new Date('2026-10-03T12:00:00Z');
+const tle = 'ISS (ZARYA)\n1 25544U 98067A   26275.50000000  .00016717  00000-0  10270-3 0  9005\n2 25544  51.6400 208.9163 0006317  69.9862  25.2906 15.49560532    10\nCSS (TIANHE)\n1 48274U 21035A   26275.50000000  .00020000  00000-0  23000-3 0  9990\n2 48274  41.4700 100.0000 0005000 300.0000  60.0000 15.60000000    10\n';
+const cad = { fields: ['des', 'orbit_id', 'jd', 'cd', 'dist', 'dist_min', 'dist_max', 'v_rel', 'v_inf', 't_sigma_f', 'h', 'diameter', 'diameter_sigma', 'fullname'], data: [['2026 TA', '3', '2461320.5', '2026-Oct-12 08:30', '0.0021', '0.002', '0.0022', '9.1', '9.0', '< 00:01', '27.1', null, null, '       (2026 TA)'], ['99942', '1', '2461350.5', '2026-Nov-11 10:00', '0.03', '0.03', '0.03', '5', '5', '00:01', '19.1', '0.34', null, ' 99942 Apophis (2004 MN4)']] };
+const t0 = Date.now();
+const r = win.AG.Sky.compute({ name: 'Vadodara', lat: 22.3072, lon: 73.1812 }, now, { tle, cad, fetchedAt: +now }, 45);
+console.log(`computed in ${Date.now() - t0} ms; ISS data: ${r.issState}`);
+const f = (d) => d ? new Date(d).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '-';
+console.log('Tonight:', r.tonight.phase, Math.round(r.tonight.illum * 100) + '%', '| sunset', f(r.tonight.sunset), '| moonrise', f(r.tonight.moonrise), '| planets:', r.tonight.planets.map(p => `${p.name} (${p.when}, ${p.where})`).join(', '));
+for (const e of r.events) console.log(` ${f(e.when).padEnd(26)} ${e.kind.padEnd(8)} ${e.big ? '★' : ' '} ${e.title} — ${e.detail.slice(0, 110)}`);
+const kinds = new Set(r.events.map(e => e.kind));
+for (const k of ['moon', 'eclipse', 'transit', 'conj', 'shower', 'iss', 'flyby']) assert(kinds.has(k), 'missing ' + k);
+assert(r.events.find(e => /solar eclipse from Vadodara/.test(e.title) && new Date(e.when).getUTCFullYear() === 2027), '2 Aug 2027 eclipse expected');
+// a different place gives different answers
+const r2 = win.AG.Sky.compute({ name: 'Sydney', lat: -33.8688, lon: 151.2093 }, now, null, 20);
+assert(f(r2.tonight.sunset) !== f(r.tonight.sunset)); assert.equal(r2.issState, 'none');
+console.log('✓ sky events computed for the chosen location; different city gives different times');

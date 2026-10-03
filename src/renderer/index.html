@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' gzimg: data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+  <title>The Astro Gazette</title>
+  <link rel="stylesheet" href="fonts.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="newspaper.css" />
+</head>
+<body>
+  <div id="backdrop" aria-hidden="true"><canvas></canvas><canvas></canvas></div>
+  <header class="titlebar">
+    <div class="brand"><span class="brand-star">✦</span> Astro Gazette</div>
+    <div class="tb-spacer"></div>
+    <div class="tb-actions">
+      <div class="menu-wrap">
+        <button class="tb-btn" id="btn-issues" title="Back issues">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h13a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3V5Z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+          <span>Back issues</span>
+        </button>
+        <div class="menu hidden" id="issues-menu"></div>
+      </div>
+      <button class="tb-btn" id="btn-all" title="Every story in this edition">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+        <span>All stories</span>
+      </button>
+      <button class="tb-btn" id="btn-sources" title="Sources, location and privacy">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+        <span>Sources</span>
+      </button>
+      <button class="tb-btn icon-only" id="btn-theme" title="Night / day paper">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button class="tb-generate" id="btn-generate">
+        <span class="gen-main">Generate edition</span>
+        <span class="gen-sub" id="gen-sub"></span>
+      </button>
+    </div>
+    <div class="tb-controls-space"></div>
+  </header>
+
+  <!-- First run -->
+  <section id="welcome" class="welcome hidden">
+    <div class="welcome-inner">
+      <div class="eyebrow">Your personal astronomy newspaper</div>
+      <h1 class="welcome-title">The Astro Gazette</h1>
+      <p class="welcome-copy" id="welcome-copy"></p>
+      <div class="welcome-actions">
+        <button class="big-btn" id="welcome-generate">Print my first edition</button>
+        <button class="link-btn" id="welcome-sources">Choose sources</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- The newspaper on the desk -->
+  <section id="paperview" class="desk hidden">
+    <div class="stage" id="stage"></div>
+    <button class="side-arrow left" id="p-side-prev" title="Previous page"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button class="side-arrow right" id="p-side-next" title="Next page"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    <div class="typesetting hidden" id="typesetting"><span class="ts-dot"></span>Typesetting…</div>
+    <nav class="deskbar">
+      <input type="range" class="scrub" id="p-scrub" min="0" max="0" value="0" aria-label="Page" />
+      <div class="db-left" id="p-sections"></div>
+      <div class="db-center">
+        <button class="db-arrow" id="p-prev" title="Previous page (←)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="db-where"><b id="p-label">A1</b><span id="p-name">Front Page</span><small id="p-count"></small></div>
+        <button class="db-arrow" id="p-next" title="Next page (→)"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="db-right">
+<button class="db-btn icon" id="p-fit" title="Fit to width — bigger page, scroll to read (W)"><svg viewBox="0 0 24 24"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4M8 12h8M8 12l2-2M8 12l2 2M16 12l-2-2M16 12l-2 2"/></svg></button>
+        <div class="zoomctl" title="Zoom (Ctrl + scroll, or + / −)"><button id="p-zout" aria-label="Zoom out">−</button><button id="p-zoom" class="zval" title="Reset zoom (0)">100%</button><button id="p-zin" aria-label="Zoom in">+</button></div>
+        <button class="db-btn" id="p-smaller" title="Smaller type">A<small>−</small></button>
+        <button class="db-btn big" id="p-larger" title="Larger type">A<small>+</small></button>
+      </div>
+    </nav>
+  </section>
+
+  <!-- Book reader -->
+  <section id="readerview" class="desk reader hidden">
+    <div class="rbar">
+      <button class="rbar-back" id="r-back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg> The paper</button>
+      <div class="rbar-title" id="r-title"></div>
+      <button class="tb-btn" id="r-why" title="Why did the paper pick this story?"><span>Why this?</span></button>
+      <button class="tb-btn thumb" id="r-up" title="More like this">👍</button>
+      <button class="tb-btn thumb" id="r-down" title="Fewer like this">👎</button>
+      <button class="tb-btn" id="r-original"><span>Original</span><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
+    </div>
+    <div class="stage" id="rstage"></div>
+    <div class="contview hidden" id="cont"></div>
+    <button class="side-arrow left" id="r-side-prev" title="Previous page"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button class="side-arrow right" id="r-side-next" title="Next page"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    <nav class="deskbar">
+      <input type="range" class="scrub" id="r-scrub" min="0" max="0" value="0" aria-label="Page" />
+      <div class="db-left"><button class="db-chip" id="r-prevstory">‹ Previous story</button></div>
+      <div class="db-center">
+        <button class="db-arrow" id="r-prev"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="db-where"><b id="r-label"></b><small id="r-left"></small></div>
+        <button class="db-arrow" id="r-next"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="db-right">
+        <button class="db-chip" id="r-nextstory">Next story ›</button>
+        <button class="db-btn icon" id="r-cont" title="Continuous reading: all pages of the story in one two-page scroll, no page turns"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="7" rx="1"/><rect x="13" y="3" width="8" height="7" rx="1"/><rect x="3" y="14" width="8" height="7" rx="1"/><rect x="13" y="14" width="8" height="7" rx="1"/></svg></button>
+<button class="db-btn icon" id="r-fit" title="Fit to width — bigger page, scroll to read (W)"><svg viewBox="0 0 24 24"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4M8 12h8M8 12l2-2M8 12l2 2M16 12l-2-2M16 12l-2 2"/></svg></button>
+        <div class="zoomctl" title="Zoom (Ctrl + scroll, or + / −)"><button id="r-zout" aria-label="Zoom out">−</button><button id="r-zoom" class="zval" title="Reset zoom (0)">100%</button><button id="r-zin" aria-label="Zoom in">+</button></div>
+        <button class="db-btn" id="r-smaller" title="Smaller type">A<small>−</small></button>
+        <button class="db-btn big" id="r-larger" title="Larger type">A<small>+</small></button>
+      </div>
+    </nav>
+  </section>
+
+  <!-- Off-screen typesetting room -->
+  <div id="typeset" aria-hidden="true"></div>
+
+  <!-- Printing progress -->
+  <div id="press" class="press hidden">
+    <div class="press-card">
+      <div class="orbit"><span class="sun"></span><span class="ring"><span class="planet"></span></span><span class="ring r2"><span class="planet p2"></span></span></div>
+      <h2 class="press-title" id="press-title">Printing your edition…</h2>
+      <p class="press-sub" id="press-sub"></p>
+      <div class="press-bar"><span id="press-bar"></span></div>
+      <ul class="press-list" id="press-list"></ul>
+      <button class="link-btn" id="press-cancel">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Every story in the edition -->
+  <div id="allstories" class="press hidden">
+    <div class="press-card all-card">
+      <div class="all-head"><h2 class="press-title">All stories</h2><button class="link-btn" id="all-close">Close</button></div>
+      <p class="press-sub">The paper prints the best of the edition. Everything it collected is here, best first.</p>
+      <div class="all-list" id="all-list"></div>
+    </div>
+  </div>
+
+  <!-- Why this story -->
+  <div id="why" class="press hidden">
+    <div class="press-card confirm-card">
+      <div class="confirm-icon">?</div>
+      <h2 class="press-title">Why this story?</h2>
+      <div class="why-body" id="why-body"></div>
+      <div class="confirm-btns"><button class="big-btn small" id="why-close">Close</button></div>
+    </div>
+  </div>
+
+  <!-- Leaving the app -->
+  <div id="confirm" class="press hidden">
+    <div class="press-card confirm-card">
+      <div class="confirm-icon">↗</div>
+      <h2 class="press-title">Open on <span id="confirm-host"></span>?</h2>
+      <p class="press-sub">This opens the story in your normal web browser. That’s an ordinary visit to their website, so they (and any trackers on it) will see it — unlike reading here, which stays private on your laptop.</p>
+      <label class="check confirm-never"><input type="checkbox" id="confirm-never" /> Don’t ask me again</label>
+      <div class="confirm-btns"><button class="ghost-btn" id="confirm-cancel">Stay in the app</button><button class="big-btn small" id="confirm-go">Open in browser</button></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="feed.js"></script>
+  <script src="extract.js"></script>
+  <script src="vendor/astronomy.min.js"></script>
+  <script src="vendor/satellite.min.js"></script>
+  <script src="content.js"></script>
+  <script src="brain.js"></script>
+  <script src="extras.js"></script>
+  <script src="sky.js"></script>
+  <script src="skyevents.js"></script>
+  <script src="backdrop.js"></script>
+  <script src="generate.js"></script>
+  <script src="typeset.js"></script>
+  <script src="paper.js"></script>
+  <script src="book.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

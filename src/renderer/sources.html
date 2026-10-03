@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' gzimg: data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+  <title>Sources · The Astro Gazette</title>
+  <link rel="stylesheet" href="fonts.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="sources.css" />
+</head>
+<body>
+  <header class="titlebar">
+    <div class="brand"><span class="brand-star">✦</span> Sources</div>
+    <div class="tb-spacer"></div>
+    <div class="tb-controls-space"></div>
+  </header>
+
+  <main class="cfg">
+    <div class="cfg-head">
+      <div>
+        <div class="eyebrow">Configure</div>
+        <h1>Your newsroom</h1>
+        <p class="cfg-lede">Pick the publishers that feed your paper. Only free-to-read stories are printed — anything behind a paywall is detected and skipped.</p>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="card-title">Sources <span id="src-count"></span></div>
+      <ul class="src-list" id="src-list"></ul>
+    </section>
+
+    <section class="card">
+      <div class="card-title">Add a source</div>
+      <div class="add-row">
+        <label class="field grow"><span>Name</span><input id="add-name" placeholder="e.g. Sky at Night Magazine" /></label>
+        <label class="field grow2"><span>Feed or website URL</span><input id="add-url" placeholder="https://… (I’ll find the RSS feed if you paste the homepage)" /></label>
+      </div>
+      <div class="add-row between">
+        <label class="check"><input type="checkbox" id="add-astro" /> <span>Astronomy stories only <small>(for general science/space sites)</small></span></label>
+        <div class="btns">
+          <button class="ghost" id="add-test">Test</button>
+          <button class="primary" id="add-save">Add source</button>
+        </div>
+      </div>
+      <div class="test-result hidden" id="add-result"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">Edition settings</div>
+      <div class="settings">
+        <label class="field"><span>Catch-up window (days)</span><input type="number" min="1" max="30" id="set-days" /></label>
+        <label class="field"><span>Max stories per source</span><input type="number" min="1" max="50" id="set-max" /></label>
+        <label class="field"><span>Most pages in a paper</span><input type="number" min="8" max="30" id="set-pages" /></label>
+        <label class="field"><span>Paper</span>
+          <select id="set-theme"><option value="night">Night edition (dark)</option><option value="day">Day edition (newsprint)</option></select>
+        </label>
+      </div>
+      <label class="check" style="margin-top:12px"><input type="checkbox" id="set-gestures" /> <span>Also turn pages by dragging, clicking a page edge or scrolling <small>(off: pages change only with the arrow buttons or the ← → keys)</small></span></label>
+      <p class="hint">Each new edition covers everything since your previous one. If the gap is longer than the catch-up window, you only get the last <b id="hint-days">7</b> days — no backlog.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-title">Your location <span>for the sky page</span></div>
+      <div class="add-row">
+        <label class="field grow2"><span>City</span><select id="loc-city"></select></label>
+        <label class="field grow"><span>Latitude</span><input id="loc-lat" inputmode="decimal" placeholder="22.3072" /></label>
+        <label class="field grow"><span>Longitude</span><input id="loc-lon" inputmode="decimal" placeholder="73.1812" /></label>
+      </div>
+      <p class="hint" style="margin:0">Used only for sums done on this laptop: moonrise, eclipses, space-station passes. Pick a city, or type coordinates for anywhere else. The app never looks your location up online and never sends it anywhere.</p>
+      <div class="test-result hidden" id="loc-result"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">What your paper has learned</div>
+      <p class="hint" style="margin:0 0 6px" id="learn-summary"></p>
+      <p class="hint" style="margin:0 0 10px" id="learn-model"></p>
+      <p class="hint" style="margin:0 0 10px" id="learn-score"></p>
+      <div class="learn" id="learn-likes"></div>
+      <div class="learn" id="learn-dislikes"></div>
+      <div class="add-row between" style="margin-top:12px">
+        <span class="hint" style="margin:0">It learns from the stories you open, finish, skip and rate. It all stays in one file on this laptop.</span>
+        <button class="ghost danger" id="learn-reset">Erase what it learned</button>
+      </div>
+      <div class="add-row between" style="margin-top:12px">
+        <span class="hint" style="margin:0">Want proof it is working? This runs a short check on this laptop and shows the results.</span>
+        <button class="primary" id="learn-check">Check the model now</button>
+      </div>
+      <div class="test-result hidden" id="check-result"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">Privacy</div>
+      <p class="hint" style="margin:0 0 12px">Your reading, your 👍/👎 and anything the app learns never leave this laptop. Publishers only ever see a generic reader collecting their whole feed — no cookies, no IDs, no “came from” links — and pictures are saved when the paper is printed, so reading touches nothing online.</p>
+      <div class="route">
+        <label class="radio"><input type="radio" name="route" value="off" /> <span><b>Normal connection</b><small>Fastest. If you use a VPN app on your laptop, it applies automatically.</small></span></label>
+        <label class="radio"><input type="radio" name="route" value="tor" /> <span><b>Route through Tor</b><small>Hides your internet address from publishers. Needs the free Tor Browser open (or the Tor service running). If Tor isn’t running, the app won’t connect at all rather than fall back.</small></span></label>
+        <label class="radio"><input type="radio" name="route" value="custom" /> <span><b>Route through a proxy / VPN address</b><small>For VPNs that give you a proxy address.</small></span></label>
+        <div class="add-row custom-row"><label class="field grow"><span>Proxy address</span><input id="proxy-url" placeholder="socks5://127.0.0.1:1080" /></label></div>
+      </div>
+      <div class="add-row between" style="margin-top:12px">
+        <label class="check"><input type="checkbox" id="warn-original" /> <span>Warn me before opening a story on the publisher’s website</span></label>
+        <button class="ghost" id="route-test">Test connection</button>
+      </div>
+      <div class="test-result hidden" id="route-result"></div>
+    </section>
+
+    <div class="cfg-foot">
+      <button class="link-btn" id="reset">Restore default sources</button>
+      <span class="saved" id="saved">Saved</span>
+    </div>
+  </main>
+
+  <script src="feed.js"></script>
+  <script src="content.js"></script>
+  <script src="brain.js"></script>
+  <script src="sources.js"></script>
+</body>
+</html>
