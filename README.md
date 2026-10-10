@@ -19,7 +19,7 @@
   <img alt="licence" src="https://img.shields.io/badge/licence-MIT-green">
 </p>
 
-<p align="center"><b><a href="https://vishal-1211.github.io/dailyorbit/">🌐 See the website</a></b></p>
+<p align="center"><b><a href="https://vishal-1211.github.io/dailyorbit/">🌐 See the website and flip through the paper</a></b></p>
 
 <p align="center"><i>Built at the Claude Build Day, Mumbai (10 Oct 2026), with Claude Code.</i></p>
 

@@ -70,6 +70,19 @@
   .road b { color: var(--ink); }
   footer { padding: 90px 0 60px; text-align: center; color: var(--muted); }
   footer .lede { margin-bottom: 26px; }
+  /* flip-through paper (Kindle-style page turn) */
+  .flip { perspective: 2400px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .book { position: relative; width: min(900px, 100%); aspect-ratio: 1440 / 940; }
+  .leaf { position: absolute; inset: 0; transform-origin: left center; transform-style: preserve-3d; transition: transform 1s cubic-bezier(.3,.7,.2,1), box-shadow 1s; border-radius: 14px; }
+  .leaf img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 14px; backface-visibility: hidden; border: 1px solid var(--line); }
+  .leaf .back { position: absolute; inset: 0; border-radius: 14px; background: linear-gradient(90deg, #1b2236, #0d1324); transform: rotateY(180deg); backface-visibility: hidden; }
+  .leaf.turned { transform: rotateY(-178deg); }
+  .leaf:not(.turned):hover { transform: rotateY(-6deg); box-shadow: 30px 10px 50px rgba(0,0,0,.5); }
+  .leaf::after { content: ''; position: absolute; inset: 0; border-radius: 14px; pointer-events: none; background: linear-gradient(90deg, rgba(0,0,0,.25), transparent 8%, transparent 92%, rgba(255,255,255,.06)); }
+  .flip-ctl { display: flex; align-items: center; gap: 14px; }
+  .flip-ctl button { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background: rgba(13,19,36,.8); color: var(--ink); font-size: 20px; cursor: pointer; }
+  .flip-ctl button:hover { border-color: var(--gold); }
+  .flip-ctl span { min-width: 220px; text-align: center; color: var(--ink2); font-size: 15px; }
   .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s, transform .8s; }
   .reveal.in { opacity: 1; transform: none; }
   @media (max-width: 760px) { .receipt { grid-template-columns: 1fr; } nav .hide { display: none; } }
@@ -82,7 +95,7 @@
 <div class="wrap">
   <nav>
     <img src="images/logo.png" alt=""><b>The Daily Orbit</b><span class="sp"></span>
-    <a class="btn ghost hide" href="#features">Features</a>
+    <a class="btn ghost hide" href="#flip">Flip through</a><a class="btn ghost hide" href="#features">Features</a>
     <a class="btn gold" href="https://github.com/vishal-1211/dailyorbit">View on GitHub</a>
   </nav>
 
@@ -112,6 +125,15 @@
       <div class="card"><i>⚖️</i><b>One story, every publisher</b><p>When several outlets cover the same news, compare how each told it, side by side.</p></div>
       <div class="card"><i>⚡</i><b>Seconds, not minutes</b><p>A full paper from ~50 publishers in about 22 seconds in our benchmark; a second paper the same day is near-instant.</p></div>
       <div class="card"><i>🌙</i><b>Calm by design</b><p>No infinite feed, no pop-ups, no autoplay. Big type, zoom to 250%, night and day paper, keyboard-first.</p></div>
+    </div>
+  </section>
+
+  <section id="flip" class="reveal">
+    <h2>Turn the pages</h2>
+    <p class="sub">It reads like a real paper, with real page turns. Click the page, use the arrows, or press ← → on your keyboard.</p>
+    <div class="flip">
+      <div class="book" id="book" tabindex="0" aria-label="Flip through The Daily Orbit"></div>
+      <div class="flip-ctl"><button id="fprev" aria-label="Previous page">‹</button><span id="fcap"></span><button id="fnext" aria-label="Next page">›</button></div>
     </div>
   </section>
 
@@ -187,6 +209,18 @@
   size(); addEventListener('resize', size);
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   (function draw(t) { x.clearRect(0, 0, W, H); for (const s of S) { x.globalAlpha = .25 + .5 * Math.abs(Math.sin(t / 1800 + s[3] * 9)); x.fillStyle = '#dfe6ff'; x.beginPath(); x.arc(s[0], s[1], s[2] * devicePixelRatio, 0, 7); x.fill(); } if (!still) requestAnimationFrame(draw); })(0);
+
+  // Flip-through: each leaf turns over its left edge, like a Kindle page
+  const pages = [['newsstand', 'The newsstand: pick your desks'], ['cover', 'Front page'], ['spread', 'Desk pages: World and India'], ['finance-edition', 'A Finance edition'], ['fun-and-quiz', 'Fun & games'], ['continuous-reader', 'The story reader'], ['compare', 'One story, every publisher'], ['you-and-your-paper', 'What it learned, and what left your laptop']];
+  const book = document.getElementById('book'); let at = 0;
+  pages.slice().reverse().forEach(([f, cap], i) => { const d = document.createElement('div'); d.className = 'leaf'; d.style.zIndex = i + 1; d.innerHTML = `<img src="images/${f}.jpg" alt="${cap}" loading="lazy"><div class="back"></div>`; book.appendChild(d); });
+  const leaves = [...book.children].reverse();
+  const show = () => { leaves.forEach((l, i) => { l.classList.toggle('turned', i < at); l.style.zIndex = i < at ? i + 1 : pages.length - i + 10; }); document.getElementById('fcap').textContent = `${at + 1} / ${pages.length} · ${pages[at][1]}`; };
+  const go = (d) => { at = Math.max(0, Math.min(pages.length - 1, at + d)); show(); };
+  document.getElementById('fnext').onclick = () => go(1); document.getElementById('fprev').onclick = () => go(-1);
+  book.onclick = (e) => { const r = book.getBoundingClientRect(); go(e.clientX - r.left < r.width * 0.3 ? -1 : 1); };
+  addEventListener('keydown', (e) => { const r = book.getBoundingClientRect(); if (r.top > innerHeight || r.bottom < 0) return; if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); });
+  show();
   const io = new IntersectionObserver((es) => es.forEach(e => e.isIntersecting && e.target.classList.add('in')), { threshold: .12 });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 </script>
