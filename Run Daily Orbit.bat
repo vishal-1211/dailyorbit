@@ -10,7 +10,7 @@ if not exist node_modules\electron\dist\electron.exe (
   echo Downloading the Electron runtime...
   call node node_modules\electron\install.js
 )
-rem 1st fallback: reuse the Electron runtime The Astro Gazette already downloaded on this laptop
+rem 1st fallback: reuse an Electron runtime another app already downloaded on this laptop
 if not exist node_modules\electron\dist\electron.exe call :reuse "%USERPROFILE%\Downloads"
 if not exist node_modules\electron\dist\electron.exe call :reuse "%USERPROFILE%\Desktop"
 if not exist node_modules\electron\dist\electron.exe call :reuse "%USERPROFILE%\Documents"

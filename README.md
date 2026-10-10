@@ -19,7 +19,7 @@
   <img alt="licence" src="https://img.shields.io/badge/licence-MIT-green">
 </p>
 
-<p align="center"><i>Built in an afternoon at the Claude Build Day, Mumbai (10 Oct 2026), with Claude Code, on top of <a href="https://github.com/vishal-1211/AstroGazette">The Astro Gazette</a>.</i></p>
+<p align="center"><i>Built at the Claude Build Day, Mumbai (10 Oct 2026), with Claude Code.</i></p>
 
 <p align="center"><img src="docs/images/demo.gif" width="900" alt="Animated tour: choose desks on the newsstand, turn the pages of the paper, see the You and your paper receipt, read a story and compare how two publishers told it"></p>
 
