@@ -205,14 +205,14 @@
     $('#learn-check').addEventListener('click', runCheck);
     $('#loc-city').addEventListener('change', async (e) => {
       const c = AG.Content.CITIES.find(x => x.name === e.target.value); if (!c) return;
-      cfg.settings.location = { name: c.name, lat: c.lat, lon: c.lon }; await save(); render();
+      cfg.settings.locationSet = true; cfg.settings.location = { name: c.name, lat: c.lat, lon: c.lon }; await save(); render();
     });
     const coords = async () => {
       const lat = parseFloat($('#loc-lat').value), lon = parseFloat($('#loc-lon').value), out = $('#loc-result');
       if (!(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) { out.className = 'test-result bad'; out.textContent = 'Latitude must be between −90 and 90, longitude between −180 and 180 (east is positive).'; return; }
       out.className = 'test-result hidden';
       const near = AG.Content.CITIES.find(c => Math.abs(c.lat - lat) < 0.02 && Math.abs(c.lon - lon) < 0.02);
-      cfg.settings.location = { name: near ? near.name : 'your location', lat, lon }; await save(); render();
+      cfg.settings.locationSet = true; cfg.settings.location = { name: near ? near.name : 'your location', lat, lon }; await save(); render();
     };
     $('#loc-lat').addEventListener('change', coords); $('#loc-lon').addEventListener('change', coords);
     $('#learn-reset').addEventListener('click', async () => {

@@ -192,6 +192,12 @@ const audit = (page) => page.evaluate(() => {
   await page.keyboard.press('ArrowRight'); await settle(page, 1000);
   await page.click('#p-zin'); await page.click('#p-zin'); await settle(page, 300); assert.equal(await page.textContent('#p-zoom'), '150%'); await shot(page, '12-zoom'); await page.click('#p-zoom');
   await page.click('#p-fit'); await page.waitForSelector('#p-fit.on'); await settle(page, 1500); await shot(page, '13-fit-width');
+  { const lab = await page.textContent('#p-label'), top0 = await page.evaluate(() => document.querySelector('#stage').scrollTop);
+    await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowDown'); await settle(page, 700);
+    const top1 = await page.evaluate(() => document.querySelector('#stage').scrollTop);
+    await page.keyboard.press('ArrowUp'); await settle(page, 600); const top2 = await page.evaluate(() => document.querySelector('#stage').scrollTop);
+    assert(top1 > top0 && top2 < top1 && (await page.textContent('#p-label')) === lab, `↑/↓ move the page without turning it (${top0} → ${top1} → ${top2})`);
+    console.log('✓ ↑ / ↓ move the page up and down without turning it'); }
   const af = await audit(page); assert.deepEqual(af.overflow, [], 'fit-width layout'); await page.click('#p-fit'); await settle(page, 1200);
   await page.click('#btn-theme'); await settle(page, 700); await page.keyboard.press('Home'); await settle(page, 1000); await shot(page, '14-day-cover');
   await page.keyboard.press('ArrowRight'); await settle(page, 1000); await shot(page, '15-day-spread'); await page.click('#btn-theme'); await settle(page, 300);

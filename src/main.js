@@ -38,7 +38,7 @@ const DEFAULT_SETTINGS = {
   proxyMode: 'off',   // 'off' (normal / system VPN) | 'tor' | 'custom'
   proxyUrl: '',       // for 'custom', e.g. socks5://127.0.0.1:1080
   warnOriginal: true, // warn before opening a story in the normal browser
-  location: { name: 'Vadodara', lat: 22.3072, lon: 73.1812 } // used only for sky calculations on this laptop; never sent anywhere
+  location: { name: 'Mumbai', lat: 19.076, lon: 72.8777 } // used only for sky calculations on this laptop; never sent anywhere
 };
 const { migrateSources } = require('./migrate');
 const embedder = require('./embedder');
@@ -75,6 +75,8 @@ function getConfig() {
   }
   const { sources, seenDefaults, changed } = migrateSources(cfg, DEFAULT_SOURCES, DEFAULT_SOURCES.MOVED);
   const out = { settings: { ...DEFAULT_SETTINGS, ...(cfg.settings || {}) }, sources, seenDefaults };
+  // 1.2: the default city moved from Vadodara to Mumbai; follow it unless a city was picked by hand.
+  if (!out.settings.locationSet && out.settings.location?.name === 'Vadodara') { out.settings.location = { ...DEFAULT_SETTINGS.location }; saveConfig(out); return out; }
   if (changed) saveConfig(out);
   return out;
 }

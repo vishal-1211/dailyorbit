@@ -107,6 +107,8 @@ The paper grows with the news, up to 24 pages (8–30 in **Sources → Edition s
 
 **Turning pages.** Only the arrow buttons or the **← / →** keys turn pages. Scrolling, dragging, Space and Page Up/Down never do (a setting brings them back). **Home / End** jump to the first/last page.
 
+**Moving around a page.** **↑ / ↓** move the page up and down when it is zoomed or in fit-to-width; they never turn pages.
+
 **Zoom.** **− / +** or Ctrl+scroll, **0** to reset, **W** for fit-to-width. **A− / A+** change the type size.
 
 **Reading a story.** Click any story. **👍 / 👎** teach the paper, **Why this?** explains the pick, and the **continuous reading** switch (the four-squares button) lays the story out as two-page spreads you scroll through. **Esc** returns to the paper.
@@ -131,7 +133,7 @@ The paper grows with the news, up to 24 pages (8–30 in **Sources → Edition s
 
 ## Your location and the sky page
 
-Set your city (or coordinates) in **Sources → Your location**. Vadodara is the default. All sky calculations run on your laptop; the location is never sent anywhere and is never looked up online. Space-station passes and asteroid flybys use two public data files (the same for everyone) downloaded when an edition is printed, so they refresh with each new edition.
+Set your city (or coordinates) in **Sources → Your location**. Mumbai is the default. The app deliberately does not use Windows' own location service: that works by sending nearby Wi-Fi details to an online service, which would break the rule that nothing about you leaves the laptop. All sky calculations run on your laptop; the location is never sent anywhere and is never looked up online. Space-station passes and asteroid flybys use two public data files (the same for everyone) downloaded when an edition is printed, so they refresh with each new edition.
 
 ## Privacy
 

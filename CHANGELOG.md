@@ -9,6 +9,8 @@ Notable changes to The Daily Orbit. Versions follow [semantic versioning](https:
 - **Local article cache:** stories already read out of their pages are kept on this laptop for 8 days (`article-cache.json`), so a second paper the same day (say Finance after Everything) reuses them instead of downloading them again.
 - **Backdrops per desk:** markets, globes, rangoli, circuits, molecules, pitch and track, heartbeat, film strips; galaxies only when Astronomy is in the paper. The backdrop follows the paper on the desk and the desks picked on the newsstand.
 - Desks with only one or two stories share "Around the desks" pages instead of leaving near-empty pages.
+- **↑ / ↓** move the page up and down (zoomed, fit-to-width, continuous reader); they never turn pages.
+- Default city is now Mumbai (existing installs follow unless a city was picked by hand). Windows' location service is deliberately not used: it sends nearby Wi-Fi details to an online service.
 
 ### Fixed
 - Publisher logos shown as story pictures, cropped to a few letters (e.g. ThePrint). Pictures reused across one publisher's stories, addresses that say logo/placeholder/default, tiny pictures and banners are no longer used as photos.

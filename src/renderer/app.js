@@ -513,6 +513,7 @@
         if ([' ', 'PageDown'].includes(e.key)) { e.preventDefault(); box.scrollBy({ top: box.clientHeight * 0.85, behavior: 'smooth' }); }
         else if (e.key === 'PageUp') { e.preventDefault(); box.scrollBy({ top: -box.clientHeight * 0.85, behavior: 'smooth' }); }
         else if (e.key === 'ArrowRight') contStep(1); else if (e.key === 'ArrowLeft') contStep(-1);
+        else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); box.scrollBy({ top: (e.key === 'ArrowDown' ? 1 : -1) * Math.max(60, box.clientHeight * 0.18), behavior: 'smooth' }); }
         else if (e.key === 'Home') box.scrollTo({ top: 0 }); else if (e.key === 'End') box.scrollTo({ top: box.scrollHeight });
         else if (e.key === 'Escape') closeReader();
         else if (e.key === '+' || e.key === '=') contZoom(cont.zoom + 0.25); else if (e.key === '-') contZoom(cont.zoom - 0.25); else if (e.key === '0') contZoom(1);
@@ -521,7 +522,7 @@
       // Space / Page Up / Page Down only ever scroll the page in view; they never change the page.
       if ([' ', 'PageDown'].includes(e.key)) { e.preventDefault(); if (book.scrollable()) book.stage.scrollBy({ top: book.stage.clientHeight * 0.85, behavior: 'smooth' }); }
       else if (e.key === 'PageUp') { e.preventDefault(); if (book.scrollable()) book.stage.scrollBy({ top: -book.stage.clientHeight * 0.85, behavior: 'smooth' }); }
-      else if (['ArrowDown', 'ArrowUp'].includes(e.key)) { /* native scroll */ }
+      else if (['ArrowDown', 'ArrowUp'].includes(e.key)) { e.preventDefault(); book.stage.scrollBy({ top: (e.key === 'ArrowDown' ? 1 : -1) * Math.max(60, book.stage.clientHeight * 0.18), behavior: 'smooth' }); } // move the page, never turn it
       else if (e.key === 'ArrowRight') { e.preventDefault(); book.turn(1); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); book.turn(-1); }
       else if (e.key === 'Home') book.jump(0);

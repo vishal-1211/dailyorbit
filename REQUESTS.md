@@ -24,3 +24,12 @@ Status: done in version 1.1.0 (built, waiting for Vishal to say release).
 | 1 | **No. 1 priority:** printing "Everything" took 5 minutes. Make it much faster: caching or any design choice. | Read fewer, fresher stories per desk (chosen by date, never by taste, so privacy holds); fetch many more pages at once with shorter time-outs; keep a local cache of articles already read so the next paper reuses them; fetch sky data and pictures in parallel. Measure before and after. |
 | 2 | Wallpaper still looks like Astro Gazette (galaxies). Change it or mix it by the topics selected. | New painted backdrops per desk (markets, globe, circuits, pitch, molecules, pulse, film, India), rotating among the desks in the paper on the desk; galaxies only when Astronomy is in it. |
 | 3 | Publisher logos sometimes stretch/crop (ThePrint showed only "RI"). | Detect logo/placeholder pictures (same picture on several stories of a publisher, very wide or tiny images, "logo" in the address) and drop them; never crop a picture that is mostly text. |
+
+# Round 6 requests (10 Oct 2026, 16:51) — noted before building
+
+Status: done, folded into 1.1.0 (built, waiting for Vishal to say release).
+
+| # | Request | How it will be done |
+|---|---|---|
+| 1 | Up and down arrow keys should move the page up and down | ↑/↓ scroll the page you are on (paper and reader, incl. zoom and fit-width); they never turn pages. |
+| 2 | Location: the system's location, or Mumbai for now if that gets complicated | Mumbai becomes the default. Windows' own location service asks Google/Microsoft servers using nearby Wi-Fi, which breaks the "nothing flows out" rule, so it is not used; the city picker stays. |
