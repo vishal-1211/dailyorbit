@@ -21,7 +21,7 @@
 
 <p align="center"><i>Built in an afternoon at the Claude Build Day, Mumbai (10 Oct 2026), with Claude Code, on top of <a href="https://github.com/vishal-1211/AstroGazette">The Astro Gazette</a>.</i></p>
 
-![The newsstand: choose Everything or any mix of nine desks](docs/images/newsstand.jpg)
+<p align="center"><img src="docs/images/demo.gif" width="900" alt="Animated tour: choose desks on the newsstand, turn the pages of the paper, see the You and your paper receipt, read a story and compare how two publishers told it"></p>
 
 ## In 60 seconds
 
@@ -101,6 +101,7 @@ Full screen-reader support and a high-contrast mode are next on the roadmap (see
 
 | | |
 |---|---|
+| ![The newsstand: choose Everything or any mix of nine desks](docs/images/newsstand.jpg) | ![The book-style story reader](docs/images/continuous-reader.jpg) |
 | ![Front page of an Everything paper](docs/images/cover.jpg) | ![World and India desk pages](docs/images/spread.jpg) |
 | ![A Finance-only edition with its own masthead and market backdrop](docs/images/finance-edition.jpg) | ![Fun and games: quiz, did-you-know and memes](docs/images/fun-and-quiz.jpg) |
 | ![You & your paper: taste chart and the list of every site contacted](docs/images/you-and-your-paper.jpg) | ![One story, every publisher: two versions side by side](docs/images/compare.jpg) |
