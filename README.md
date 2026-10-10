@@ -364,7 +364,7 @@ erDiagram
 
 </details>
 
-| ![Day paper: dark text on cream](docs/images/day-theme.jpg) | ![Check the model now: proof the learning works](docs/images/model-check.jpg) |
+| ![Day paper: dark text on cream](docs/images/day-theme.jpg) | ![Privacy settings: normal connection, Tor, or your own proxy](docs/images/privacy-settings.jpg) |
 |---|---|
 
 More detail: [Architecture](docs/ARCHITECTURE.md) · [Data model](docs/DATA-MODEL.md) · [Privacy design](docs/PRIVACY.md) · [How it learns](docs/LEARNING.md)
