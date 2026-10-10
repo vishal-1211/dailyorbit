@@ -1,6 +1,6 @@
 # Architecture
 
-The Astro Gazette is an Electron app with no server, no database and no accounts. Everything runs on the reader's laptop. The design follows one rule: **information may flow in from the internet, but nothing about the reader flows out.**
+The Daily Orbit is an Electron app with no server, no database and no accounts. Everything runs on the reader's laptop. The design follows one rule: **information may flow in from the internet, but nothing about the reader flows out.**
 
 ## The three parts
 
@@ -98,9 +98,10 @@ The 7 is a setting (1–30). URLs already considered are remembered for 21 days 
 | `extract.js` | Readability-style article extraction, paywall detection, HTML cleaning |
 | `generate.js` | Runs the whole pipeline; repairs sources whose feed address has moved |
 | `brain.js` | Summaries, facts, numbers, quotes, story merging, ranking, on-device learning. Pure functions, also runs under Node for tests. See [LEARNING.md](LEARNING.md) |
-| `extras.js`, `content.js` | Quiz, did-you-know, memes, people, instruments, on-this-day, from the edition plus a bundled library |
-| `sky.js`, `skyevents.js` | Moon, planets, eclipses, conjunctions, meteor showers, satellite passes, asteroid flybys for the chosen location |
-| `paper.js` | Chooses pages and fits stories into them (up to 24 pages by default) |
+| `extras.js`, `content.js`, `content-topics.js` | Quiz, did-you-know, memes, people, instruments, on-this-day, from the edition plus a bundled library |
+| `sky.js`, `skyevents.js` | (Astronomy desk) Moon, planets, eclipses, conjunctions, meteor showers, satellite passes, asteroid flybys for the chosen location |
+| `topics.js` | The desks: colours, sections, keyword filters, edition kinds |
+| `paper.js` | Chooses pages and fits stories into them (up to 24 pages by default); shares pages between desks in the Everything paper |
 | `typeset.js` | Paginates a story for the reader |
 | `book.js` | Page-turn engine, zoom, fit-to-width |
 | `backdrop.js` | Painted sky backgrounds that rotate |

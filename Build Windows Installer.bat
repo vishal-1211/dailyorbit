@@ -1,5 +1,5 @@
 @echo off
-title Building The Astro Gazette
+title Building The Daily Orbit
 cd /d "%~dp0"
 where node >nul 2>nul || (echo Node.js is not installed. Get the LTS version from https://nodejs.org and run this again. & pause & exit /b 1)
 call npm install --no-audit --no-fund || (echo Install failed. & pause & exit /b 1)

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' gzimg: data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
-  <title>Sources · The Astro Gazette</title>
+  <title>Sources · The Daily Orbit</title>
   <link rel="stylesheet" href="fonts.css" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="sources.css" />
@@ -21,23 +21,26 @@
       <div>
         <div class="eyebrow">Configure</div>
         <h1>Your newsroom</h1>
-        <p class="cfg-lede">Pick the publishers that feed your paper. Only free-to-read stories are printed — anything behind a paywall is detected and skipped.</p>
+        <p class="cfg-lede">Pick the publishers that feed each desk of your paper. Only free-to-read stories are printed — anything behind a paywall is detected and skipped.</p>
       </div>
     </div>
 
     <section class="card">
       <div class="card-title">Sources <span id="src-count"></span></div>
+      <div class="src-tabs" id="src-tabs"></div>
+      <div class="src-topic-bar" id="src-topic-bar"></div>
       <ul class="src-list" id="src-list"></ul>
     </section>
 
     <section class="card">
       <div class="card-title">Add a source</div>
       <div class="add-row">
-        <label class="field grow"><span>Name</span><input id="add-name" placeholder="e.g. Sky at Night Magazine" /></label>
+        <label class="field"><span>Topic</span><select id="add-topic"></select></label>
+        <label class="field grow"><span>Name</span><input id="add-name" placeholder="e.g. The Hindu BusinessLine" /></label>
         <label class="field grow2"><span>Feed or website URL</span><input id="add-url" placeholder="https://… (I’ll find the RSS feed if you paste the homepage)" /></label>
       </div>
       <div class="add-row between">
-        <label class="check"><input type="checkbox" id="add-astro" /> <span>Astronomy stories only <small>(for general science/space sites)</small></span></label>
+        <label class="check"><input type="checkbox" id="add-astro" /> <span>Only stories on this topic <small>(for sites that cover everything)</small></span></label>
         <div class="btns">
           <button class="ghost" id="add-test">Test</button>
           <button class="primary" id="add-save">Add source</button>
@@ -67,7 +70,7 @@
         <label class="field grow"><span>Latitude</span><input id="loc-lat" inputmode="decimal" placeholder="22.3072" /></label>
         <label class="field grow"><span>Longitude</span><input id="loc-lon" inputmode="decimal" placeholder="73.1812" /></label>
       </div>
-      <p class="hint" style="margin:0">Used only for sums done on this laptop: moonrise, eclipses, space-station passes. Pick a city, or type coordinates for anywhere else. The app never looks your location up online and never sends it anywhere.</p>
+      <p class="hint" style="margin:0">Used only for the Astronomy desk’s sky page, worked out on this laptop: moonrise, eclipses, space-station passes. Pick a city, or type coordinates for anywhere else. The app never looks your location up online and never sends it anywhere.</p>
       <div class="test-result hidden" id="loc-result"></div>
     </section>
 
@@ -113,6 +116,8 @@
 
   <script src="feed.js"></script>
   <script src="content.js"></script>
+  <script src="content-topics.js"></script>
+  <script src="topics.js"></script>
   <script src="brain.js"></script>
   <script src="sources.js"></script>
 </body>

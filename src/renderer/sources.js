@@ -5,6 +5,7 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   let cfg = null;
   let editing = null;
+  let tab = 'all'; // which topic's sources are shown
   const testResults = {}; // id -> {cls, text}
 
   async function save() {
@@ -17,7 +18,15 @@
     document.documentElement.dataset.theme = cfg.settings.theme === 'day' ? 'day' : 'night';
     const on = cfg.sources.filter(s => s.enabled).length;
     $('#src-count').textContent = `${on} of ${cfg.sources.length} on`;
-    $('#src-list').innerHTML = cfg.sources.map(s => {
+    const inAll = new Set(cfg.settings.topics?.length ? cfg.settings.topics : AG.TOPICS.map(t => t.id));
+    const count = (id) => cfg.sources.filter(s => (s.topic || 'astronomy') === id);
+    $('#src-tabs').innerHTML = `<button class="src-tab ${tab === 'all' ? 'on' : ''}" data-tab="all">All topics</button>` + AG.TOPICS.map(t => { const c = count(t.id); return `<button class="src-tab ${tab === t.id ? 'on' : ''} ${inAll.has(t.id) ? '' : 'out'}" data-tab="${t.id}" style="--tc:${t.color}">${t.icon} ${esc(t.name)} <i>${c.filter(s => s.enabled).length}/${c.length}</i></button>`; }).join('');
+    const tp = AG.topicById[tab];
+    $('#src-topic-bar').innerHTML = tp ? `<label class="check"><input type="checkbox" data-act="in-all" ${inAll.has(tp.id) ? 'checked' : ''}> <span>Include ${esc(tp.name)} in the <b>Everything</b> paper <small>(${esc(tp.name)}-only papers work either way)</small></span></label>` : '<span class="hint" style="margin:0">Pick a topic above to see its sources, or browse them all here.</span>';
+    if ($('#add-topic').options.length === 0) $('#add-topic').innerHTML = AG.TOPICS.map(t => `<option value="${t.id}">${t.icon} ${esc(t.name)}</option>`).join('');
+    if (tp) $('#add-topic').value = tp.id;
+    const shown = cfg.sources.filter(s => tab === 'all' || (s.topic || 'astronomy') === tab);
+    $('#src-list').innerHTML = shown.map(s => {
       const tr = testResults[s.id];
       const edit = editing === s.id ? `
         <div class="src-edit">
@@ -29,13 +38,13 @@
         <li class="src ${s.enabled ? '' : 'off'}">
           <label class="toggle" title="${s.enabled ? 'On' : 'Off'}"><input type="checkbox" data-act="toggle" data-id="${s.id}" ${s.enabled ? 'checked' : ''}><span></span></label>
           <div style="min-width:0">
-            <div class="src-name">${esc(s.name)} ${s.astroOnly ? '<span class="tag" title="Only astronomy/space stories are kept from this source">astro filter</span>' : ''}</div>
+            <div class="src-name">${tab === 'all' ? `<i class="pl-dot" style="--tc:${AG.topicById[s.topic || 'astronomy']?.color}" title="${esc(AG.topicById[s.topic || 'astronomy']?.name)}"></i>` : ''}${esc(s.name)} ${(s.topicOnly ?? s.astroOnly) ? `<span class="tag" title="Only ${esc(AG.topicById[s.topic || 'astronomy']?.name)} stories are kept from this source">topic filter</span>` : ''}</div>
             <div class="src-url">${esc(s.url)}</div>
           </div>
           <div class="src-actions">
             <button data-act="test" data-id="${s.id}">Test</button>
             <button data-act="edit" data-id="${s.id}">Edit</button>
-            <button data-act="filter" data-id="${s.id}" title="Toggle astronomy-only filter">${s.astroOnly ? 'All topics' : 'Astro only'}</button>
+            <button data-act="filter" data-id="${s.id}" title="Keep only stories that match this source's topic">${(s.topicOnly ?? s.astroOnly) ? 'Keep all' : 'Topic only'}</button>
             <button class="del" data-act="delete" data-id="${s.id}">Remove</button>
           </div>
           ${tr ? `<div class="src-test ${tr.cls}">${esc(tr.text)}</div>` : ''}
@@ -122,7 +131,7 @@
     if (!ok) return;
     const url = ok.feedUrl;
     if (cfg.sources.some(s => s.url === url)) { const out = $('#add-result'); out.className = 'test-result bad'; out.textContent = 'That feed is already in your list.'; return; }
-    cfg.sources.push({ id: Math.random().toString(36).slice(2, 10), name: $('#add-name').value.trim() || ok.feed.title || new URL(url).hostname, url, enabled: true, astroOnly: $('#add-astro').checked });
+    cfg.sources.push({ id: Math.random().toString(36).slice(2, 10), topic: $('#add-topic').value || 'world', name: $('#add-name').value.trim() || ok.feed.title || new URL(url).hostname, url, enabled: true, topicOnly: $('#add-astro').checked });
     await save();
     $('#add-name').value = ''; $('#add-url').value = ''; $('#add-astro').checked = false;
     const out = $('#add-result'); out.className = 'test-result ok'; out.textContent = 'Added — it will be included in your next edition.';
@@ -187,7 +196,7 @@
     if (up.length && down.length) row(avg(up) > avg(down), `Taste test: it scores your 👍 stories at <b>${avg(up)}%</b> and your 👎 stories at <b>${avg(down)}%</b> on average (${up.length} and ${down.length} stories).`);
     else row(null, 'Taste test: rate at least one story 👍 and one 👎 in the reader, then run this again.');
     if (opened.length >= 3 && skipped.length >= 3) row(avg(opened) > avg(skipped), `It scores stories you opened at <b>${avg(opened)}%</b> and stories you saw but skipped at <b>${avg(skipped)}%</b>.`);
-    row(null, `Lessons learned so far: <b>${Math.round(B.state.n)}</b>. Words of astronomy it knows: <b>${Object.keys(B.state.terms).length.toLocaleString()}</b>.`);
+    row(null, `Lessons learned so far: <b>${Math.round(B.state.n)}</b>. Words it knows: <b>${Object.keys(B.state.terms).length.toLocaleString()}</b>.`);
     row(null, 'Note: the taste test checks stories it has already learned from, so it shows the model has absorbed your ratings. The scorecard above is the stricter test: it compares predictions made before you read with what you then did.');
     out.className = 'test-result ok'; out.innerHTML = lines.join('');
   }
@@ -212,6 +221,14 @@
     });
     window.addEventListener('focus', renderLearning);
 
+    $('#src-tabs').addEventListener('click', (e) => { const t = e.target.closest('[data-tab]'); if (t) { tab = t.dataset.tab; editing = null; render(); } });
+    $('#src-topic-bar').addEventListener('change', async (e) => {
+      if (e.target.dataset.act !== 'in-all') return;
+      const set = new Set(cfg.settings.topics?.length ? cfg.settings.topics : AG.TOPICS.map(t => t.id));
+      e.target.checked ? set.add(tab) : set.delete(tab);
+      if (!set.size) { e.target.checked = true; return; } // the Everything paper needs at least one topic
+      cfg.settings.topics = AG.TOPICS.map(t => t.id).filter(id => set.has(id)); await save(); render();
+    });
     $('#src-list').addEventListener('click', async (e) => {
       const b = e.target.closest('[data-act]');
       if (!b) return;
@@ -220,7 +237,7 @@
       switch (b.dataset.act) {
         case 'test': return testSource(id);
         case 'edit': editing = editing === id ? null : id; return render();
-        case 'filter': s.astroOnly = !s.astroOnly; await save(); return render();
+        case 'filter': s.topicOnly = !(s.topicOnly ?? s.astroOnly); delete s.astroOnly; await save(); return render();
         case 'delete':
           cfg.sources = cfg.sources.filter(x => x.id !== id); delete testResults[id];
           await save(); return render();

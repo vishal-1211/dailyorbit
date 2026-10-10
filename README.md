@@ -1,34 +1,35 @@
 <p align="center">
-  <img src="docs/images/logo.png" width="128" alt="The Astro Gazette logo">
+  <img src="docs/images/logo.png" width="128" alt="The Daily Orbit logo">
 </p>
 
-<h1 align="center">The Astro Gazette</h1>
+<h1 align="center">The Daily Orbit</h1>
 
 <p align="center">
-  Your personal astronomy newspaper for Windows.<br>
-  Free to run, learns your taste, and keeps your reading on your laptop.
+  Your personal daily newspaper for Windows.<br>
+  World, India, finance, tech, science, sport, the sky and more. Free to run, learns your taste, keeps your reading on your laptop.
 </p>
 
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-2.1.0-e9b65a">
+  <img alt="version" src="https://img.shields.io/badge/version-1.0.0-e9b65a">
   <img alt="platform" src="https://img.shields.io/badge/platform-Windows-1b2547">
   <img alt="licence" src="https://img.shields.io/badge/licence-MIT-green">
 </p>
 
-![Front page](docs/images/cover.jpg)
+![The newsstand](docs/images/newsstand.jpg)
 
-Press **Generate edition** and the app gathers the free-to-read astronomy stories from the sources you pick, reads the full articles, and prints them as a newspaper made for you.
+Open the newsstand, choose **Everything** or any mix of desks, and press **Print my paper**. The app gathers the free-to-read stories from the publishers you pick, reads the full articles, and prints them as a newspaper made for you. It grew out of [The Astro Gazette](https://github.com/vishal-1211/AstroGazette), an astronomy-only paper, and keeps everything that one does.
 
-- **A real paper**: front page, top stories, people, sections, great instruments, quiz and fun page, your sky, back page.
+- **Nine desks**: World, India, Finance, Technology, Science, Sports, Astronomy, Health, Entertainment, each with its own sections (Finance → Markets, Economy & Policy, Companies, Your Money, Crypto; Sports → Cricket, Football, Tennis, Motorsport…).
+- **Everything or one topic**: the Everything paper gives every desk with news at least one page and more pages to what you read most. A topic paper (say, Finance) is that desk alone, with its own masthead.
+- **One brain across topics**: what you open, finish and rate anywhere teaches the same model. Read the money pages and Finance moves up in every paper.
 - **Only free stories**: paywalled articles are detected and skipped.
-- **Learns on the laptop**: from what you open, finish and rate. No paid AI, no cloud.
+- **A real paper**: front page, top stories, Page 3 people, topic pages, quiz, did-you-know, home-made memes, back page; plus great telescopes and your sky when Astronomy is in the paper.
 - **Private**: the reading windows cannot reach the internet; publishers see a generic reader with no cookies. Optional Tor routing.
-- **Your sky**: Moon, planets, eclipses, space-station passes and asteroid flybys for your location.
 
 | | |
 |---|---|
-| ![Inside pages](docs/images/spread.jpg) | ![Continuous reader](docs/images/continuous-reader.jpg) |
-| ![Fun and quiz page](docs/images/fun-and-quiz.jpg) | ![Day theme](docs/images/day-theme.jpg) |
+| ![Front page](docs/images/cover.jpg) | ![World and India pages](docs/images/spread.jpg) |
+| ![Finance edition](docs/images/finance-edition.jpg) | ![Fun and quiz page](docs/images/fun-and-quiz.jpg) |
 
 <sub>Screenshots come from the automated tests, which use made-up stories and placeholder pictures.</sub>
 
@@ -50,8 +51,8 @@ You need **Node.js** (the LTS version from https://nodejs.org) — version 20 or
 
 | Want to… | Do this |
 |---|---|
-| Just run it | Double-click **`Run Astro Gazette.bat`** (first run installs Electron, ~1 min) |
-| Install it like a normal app | Double-click **`Build Windows Installer.bat`**. When it finishes, the `dist` folder has `AstroGazette-Setup-<version>.exe` (installer with Start-menu + desktop shortcuts) and `AstroGazette-Portable-<version>.exe` (single file, no install) |
+| Just run it | Double-click **`Run Daily Orbit.bat`** (first run installs Electron, ~1 min) |
+| Install it like a normal app | Double-click **`Build Windows Installer.bat`**. When it finishes, the `dist` folder has `DailyOrbit-Setup-<version>.exe` (installer with Start-menu + desktop shortcuts) and `DailyOrbit-Portable-<version>.exe` (single file, no install) |
 
 Or from a terminal: `npm install` then `npm start`.
 
@@ -65,15 +66,24 @@ The app remembers when you last printed an edition.
 
 If nothing is new, you get "You're all caught up" and your window isn't used up. If every source is unreachable (no internet), nothing changes either. The 7 days can be changed in **Sources → Edition settings** (1–30).
 
+## How the edition window works
+
+Each kind of paper remembers when it was last printed: Everything, Finance, Finance + Sports, and so on.
+
+- **First edition of a kind** → stories from the past 7 days.
+- **Printed less than 7 days ago** → everything published since that edition.
+- **Away more than 7 days** → only the last 7 days.
+
+Stories already printed in any paper are not repeated. The 7 days can be changed in **Sources → Edition settings** (1–30).
+
 ## Sources
 
-Click **Sources** in the title bar to open the configuration window:
+Click **Sources** in the title bar. Sources are grouped by desk: pick a desk tab to see, switch on/off, **Test**, **Edit** or **Remove** its publishers, and choose whether that desk is part of the **Everything** paper.
 
-- Switch sources on/off, **Test** a feed, **Edit**, **Remove**.
-- **Add a source**: paste a feed URL *or just the site's homepage* — the app finds the RSS feed for you.
-- **Astro only** filter: for mixed feeds (e.g. NASA also posts Earth-science and weather), keeps only astronomy/space stories.
+- **Add a source**: choose its desk, paste a feed URL *or just the site's homepage* — the app finds the RSS feed for you.
+- **Topic only** filter: for publishers that cover everything, keeps only the stories that match the source's desk.
 
-There are 18 default sources, among them NASA, ESA, ESO, Astronomy Magazine, Universe Today, EarthSky, Phys.org Astronomy, Sky & Telescope, APOD, Bad Astronomy, Starts With A Bang, Astrobites, Centauri Dreams and AAA Vadodara. The full list is in `src/default-sources.js`.
+About 70 sources come pre-filled, 49 of them switched on, from publishers such as Al Jazeera, BBC, The Guardian, NPR, NDTV, ThePrint, Scroll, The Hindu, Mint, TechCrunch, Ars Technica, ScienceDaily, Quanta, ESPNcricinfo, Sky Sports, NASA, ESA, ESO and Sky & Telescope. The full list is in `src/default-sources.js`. Feeds were checked on 10 Oct 2026; a few well-known ones could not be checked from the build machine and are marked there. The paper's back page lists any source that could not be reached.
 
 ## Paywalls and full text
 
@@ -85,27 +95,25 @@ If a free page can't be read (some sites block automated readers), the feed's su
 
 ## The paper
 
-Every edition is laid out automatically and sized to your window. It grows with the news: a quiet week is about 9 pages, a busy one up to 24. Change the limit in **Sources → Edition settings → Most pages in a paper** (8–30).
-
-1. **Front page**: the lead story, three more, tonight's Moon for your city, and an index.
+1. **Front page**: the lead story, the next ones, tonight's Moon for your city, and an index.
 2. **Top stories**: the best of the edition, each with its opening paragraphs, plus "by the numbers".
-3. **Page 3, People**: a star of the edition (born this week when possible), people quoted in this edition's stories, and "on this day".
-4. **Sections** (as many pages as the stories need): Skywatching, Solar System, Missions, Deep Space, Frontiers, colour-coded.
-5. **Eyes on the sky**: a great optical instrument profiled each edition, with related stories.
-6. **Fun & games**: a 5-question quiz (some questions come from this edition), did-you-know, fun facts, and two home-made memes.
-7. **Your sky**: Moon, planets, eclipses, Moon-and-planet meetings, meteor showers, space-station passes and asteroid flybys for your location.
-8. **Back page**: stories that didn't fit as briefs, sources, and what the paper has learned.
+3. **Page 3, People**: a famous name from the desks in this paper (born this week when possible), people quoted in the news, and a hall of fame.
+4. **Desk pages**: in the Everything paper, each desk gets its own colour-coded pages, in the order you read them most; in a topic paper, that desk's sections.
+5. **Eyes on the sky** and **Your sky**: when Astronomy is in the paper.
+6. **Fun & games**: a 5-question quiz (some questions come from this edition's stories), did-you-know, fun facts and two home-made memes, mixed across the desks.
+7. **Back page**: stories that didn't fit as briefs, sources, and what the paper has learned.
 
-**All stories** in the title bar lists everything the edition collected.
+The paper grows with the news, up to 24 pages (8–30 in **Sources → Edition settings**). **All stories** lists everything the edition collected.
 
-**Turning pages.** Pages change only when you ask: the arrow buttons at the sides of the paper, the buttons in the bar, or the **← / →** keys. **Home / End** jump to the first/last page. Scrolling, dragging, Space and Page Up/Down never turn a page; they only move around the page you are on. If you prefer the old behaviour, switch on **Sources → Edition settings → Also turn pages by dragging, clicking a page edge or scrolling**.
+**Turning pages.** Only the arrow buttons or the **← / →** keys turn pages. Scrolling, dragging, Space and Page Up/Down never do (a setting brings them back). **Home / End** jump to the first/last page.
 
-**Zoom.** **− / +** or Ctrl+scroll (drag to move around), **0** to reset. **W** toggles fit-to-width: one large page with bigger text that you scroll. **A− / A+** change the type size.
+**Zoom.** **− / +** or Ctrl+scroll, **0** to reset, **W** for fit-to-width. **A− / A+** change the type size.
 
-**Reading a story.** Click any story to open it in the reader. **👍 / 👎** tell the paper what you want more or less of. **Why this?** shows why the paper picked the story. The **continuous reading** switch (the four-squares button in the reader bar) lays the whole story out as two-page spreads, one under the other, so you scroll straight through instead of turning pages; the switch stays as you left it. **Esc** returns to the paper.
+**Reading a story.** Click any story. **👍 / 👎** teach the paper, **Why this?** explains the pick, and the **continuous reading** switch (the four-squares button) lays the story out as two-page spreads you scroll through. **Esc** returns to the paper.
 
 ## How it learns (all on your laptop)
 
+- It learns across every desk: one model for all topics, plus a preference for each topic that the Everything paper uses to share out its pages.
 - It notes which stories you open, how far you read, which you skip, your 👍/👎 and your quiz answers.
 - From that it trains a small model of your taste and uses it to order the next edition. About one story in five is deliberately outside your usual taste.
 - It also learns astronomy vocabulary from every article it downloads, so it can tell that two stories are about similar things even when the words differ.
@@ -135,7 +143,7 @@ Set your city (or coordinates) in **Sources → Your location**. Vadodara is the
 
 ## Where your data lives
 
-`%APPDATA%\The Astro Gazette\` — `config.json` (sources, settings, location), `state.json` (last edition time, stories already shown), `editions\` (back issues), `images\` (saved pictures), `learning.json` (reading log and everything learned). Delete `state.json` to start fresh with a 7-day edition.
+`%APPDATA%\The Daily Orbit\` — `config.json` (sources, settings, location), `state.json` (last edition time, stories already shown), `editions\` (back issues), `images\` (saved pictures), `learning.json` (reading log and everything learned). Delete `state.json` to start fresh with a 7-day edition.
 
 ## Project layout
 
@@ -154,6 +162,8 @@ src/renderer/
   extras.js     Quiz, did-you-know, memes, Page 3, instruments, on this day
   content.js    Bundled library: people, instruments, facts, quiz bank, dates, cities
   skyevents.js  Location-based sky calculations
+  topics.js     The desks: colours, sections, topic filters
+  content-topics.js  People, facts, quiz and memes for every desk
   paper.js      The paper layout
   typeset.js    Book-reader pagination and shared helpers
   book.js       Page-turn engine, zoom, fit-to-width

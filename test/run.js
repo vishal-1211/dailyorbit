@@ -25,9 +25,9 @@ const api = {
   getConfig: () => store.config, saveConfig: (c) => (store.config = c), resetSources: () => store.config,
   fetchText: (u) => { fetched.push(u); return fetchText(u); },
   checkRoute: () => ({ ok: true, isTor: false }), endRun: () => null,
-  planEdition: () => ({ ...planWindow(store.state.lastGeneratedAt, Date.now(), store.config.settings.windowDays), lastGeneratedAt: store.state.lastGeneratedAt, nextNumber: store.state.editionCount + 1, seen: Object.keys(store.state.seen) }),
-  saveEdition: (e, considered) => { localize(e); store.state.editionCount++; e.number = store.state.editionCount; store.state.lastGeneratedAt = e.until; for (const u of considered) store.state.seen[u] = Date.now(); store.editions[e.id] = e; return e; },
-  listEditions: () => Object.values(store.editions).sort((a, b) => b.id.localeCompare(a.id)).map(e => ({ id: e.id, number: e.number, createdAt: e.createdAt, since: e.since, until: e.until, count: e.articles.length })),
+  planEdition: (kind = 'all') => ({ ...planWindow((store.state.lastByKind || {})[kind] || null, Date.now(), store.config.settings.windowDays), kind, lastByKind: { ...(store.state.lastByKind || {}) }, lastGeneratedAt: (store.state.lastByKind || {})[kind] || null, nextNumber: store.state.editionCount + 1, seen: Object.keys(store.state.seen) }),
+  saveEdition: (e, considered) => { localize(e); store.state.editionCount++; e.number = store.state.editionCount; (store.state.lastByKind ||= {})[e.kind || 'all'] = e.until; for (const u of considered) store.state.seen[u] = Date.now(); store.editions[e.id] = e; return e; },
+  listEditions: () => Object.values(store.editions).sort((a, b) => b.id.localeCompare(a.id)).map(e => ({ id: e.id, number: e.number, createdAt: e.createdAt, since: e.since, until: e.until, kind: e.kind || 'all', count: e.articles.length })),
   loadEdition: (id) => store.editions[id] || null, markRead: (id, aid) => { const a = store.editions[id]?.articles.find(x => x.id === aid); if (a) a.read = true; }, openExternal: () => null, openSources: () => null,
   // Stand-in for the optional pre-trained language model (the real one only runs inside the desktop app)
   embedStatus: () => ({ available: !process.env.NO_MODEL, reason: process.env.NO_MODEL ? 'model files are not installed' : '' }),
@@ -49,7 +49,12 @@ const shot = (page, name) => page.screenshot({ path: `${OUT}/${name}.png` });
 const settle = (page, ms = 900) => page.waitForTimeout(ms);
 const hideToast = (page) => page.evaluate(() => document.querySelector('#toast').classList.add('hidden'));
 const ready = (page) => page.waitForSelector('#paperview:not(.hidden) .slot .np-page', { timeout: 90000 });
-const generate = async (page) => { await page.click('#btn-generate'); await page.waitForSelector('#press:not(.hidden)'); await page.waitForSelector('#press.hidden', { state: 'attached', timeout: 120000 }); await settle(page, 700); await hideToast(page); };
+const generate = async (page, picks = null) => {
+  if (await page.isHidden('#welcome')) await page.click('#btn-generate');
+  await page.waitForSelector('#welcome:not(.hidden)'); await settle(page, 300);
+  if (picks) { await page.click('#ns-all'); for (const id of picks) await page.click(`.ns-topic[data-pick="${id}"]`); await settle(page, 200); }
+  if (process.env.SHOT_NS) await shot(page, process.env.SHOT_NS);
+  await page.click('#welcome-generate'); await page.waitForSelector('#press:not(.hidden)'); await page.waitForSelector('#press.hidden', { state: 'attached', timeout: 120000 }); await settle(page, 700); await hideToast(page); };
 
 /** Walk every page of the paper: nothing may be cut off, and count what is on show. */
 const audit = (page) => page.evaluate(() => {
@@ -149,7 +154,7 @@ const audit = (page) => page.evaluate(() => {
 
   // ---------- Edition 2 (same public stories again): requests must be identical whatever was read
   const run1 = new Set(fetched); fetched.length = 0;
-  store.state.seen = {}; store.state.lastGeneratedAt = null;
+  store.state.seen = {}; store.state.lastByKind = {};
   await generate(page); await ready(page);
   const run2 = new Set(fetched);
   const eds = Object.values(store.editions).sort((a, b) => a.number - b.number), ed2 = eds[eds.length - 1];
@@ -161,7 +166,9 @@ const audit = (page) => page.evaluate(() => {
   assert.deepEqual([moved, gone], [[], []], 'what the app asks the internet for does not depend on what was read');
   const logText = JSON.stringify(store.learning);
   assert(![...run2].some(u => /thumb|completion|opened|22\.30|73\.18|lat=|lon=/i.test(u)), 'no reading data or location in any request');
-  const odd = [...run1, ...run2].filter(u => !/^https:\/\/(www\.)?(nasa\.gov|apod\.nasa\.gov|esa\.int|astronomy\.com|universetoday\.com|esawebb\.org|esahubble\.org|eso\.org|earthsky\.org|phys\.org|skyandtelescope\.org|rss\.beehiiv\.com|bigthink\.com|astrobites\.org|centauri-dreams\.org|aaavadodara\.org|celestrak\.org|ssd-api\.jpl\.nasa\.gov)\//.test(u));
+  const okHosts = ['nasa.gov', 'apod.nasa.gov', 'esa.int', 'astronomy.com', 'universetoday.com', 'esawebb.org', 'esahubble.org', 'eso.org', 'earthsky.org', 'phys.org', 'skyandtelescope.org', 'rss.beehiiv.com', 'bigthink.com', 'astrobites.org', 'centauri-dreams.org', 'aaavadodara.org', 'celestrak.org', 'ssd-api.jpl.nasa.gov',
+    ...DEFAULTS.map(d => new URL(d.url).hostname.replace(/^www\./, '')), 'ndtvprofit.com', 'espncricinfo.com', 'skysports.com', 'aljazeera.com', 'ndtv.com', 'sciencedaily.com', 'npr.org', 'bollywoodhungama.com', 'theprint.in', 'techcrunch.com'];
+  const odd = [...run1, ...run2].filter(u => !okHosts.includes(new URL(u).hostname.replace(/^www\./, '')));
   assert.deepEqual(odd, [], 'only public feed / story / sky-data addresses are requested');
   console.log(`✓ privacy: both editions made the same ${run2.size} public requests; none carries reading data or location (learning file is ${Math.round(logText.length / 1024)} KB, local only)`);
   const a2 = await audit(page); assert(a2.pages <= 24); assert.deepEqual(a2.overflow, []);
@@ -185,10 +192,38 @@ const audit = (page) => page.evaluate(() => {
   assert(/As seen from Sydney/.test(sydText)); await syd.close(); store.config.settings.location = { name: 'Vadodara', lat: 22.3072, lon: 73.1812 };
   console.log('✓ zoom, fit-width, day paper, all-stories list; sky page follows the chosen city');
 
+  // ---------- one brain across topics: read Finance, and Finance moves up; then a Finance-only paper
+  const finIds = ed2.articles.filter(a => a.topic === 'finance' && !a.dup).map(a => a.id);
+  const affBefore = await page.evaluate(() => window.AG.Brain.topicAffinity('finance'));
+  for (const id of finIds) { await open(id); await page.keyboard.press('End'); await settle(page, 400); await page.click('#r-up'); await settle(page, 200); await page.keyboard.press('Escape'); await settle(page, 400); }
+  const sportsId = ed2.articles.find(a => a.topic === 'sports' && !a.dup).id; await open(sportsId); await page.click('#r-down'); await page.keyboard.press('Escape'); await settle(page, 400);
+  const aff = await page.evaluate(() => ({ fin: window.AG.Brain.topicAffinity('finance'), sp: window.AG.Brain.topicAffinity('sports') }));
+  assert(aff.fin > affBefore && aff.fin > aff.sp, 'reading Finance raises the Finance topic over the rest: ' + JSON.stringify(aff));
+  store.state.seen = {};
+  await page.click('#btn-generate'); await page.waitForSelector('#welcome:not(.hidden)'); await settle(page, 600);
+  assert(await page.$('.ns-topic[data-pick="finance"] .ns-fav'), 'newsstand marks the topic you read most');
+  await page.click('.ns-topic[data-pick="finance"]'); await settle(page, 300); await shot(page, '20-newsstand-finance');
+  await page.click('#welcome-generate'); await page.waitForSelector('#press:not(.hidden)'); await page.waitForSelector('#press.hidden', { state: 'attached', timeout: 120000 }); await settle(page, 700); await hideToast(page); await ready(page);
+  const edF = Object.values(store.editions).sort((a, b) => a.number - b.number).pop();
+  const aF = await audit(page);
+  assert.equal(edF.kind, 'finance'); assert(edF.articles.length && edF.articles.every(a => a.topic === 'finance'), 'a Finance paper holds only Finance');
+  assert(!aF.keys.includes('sky') && !aF.keys.includes('instruments'), 'no sky or telescope pages in a Finance paper'); assert.deepEqual(aF.overflow, []);
+  assert(/Finance edition/i.test(await page.evaluate(() => window.AG._debug.paper.book.pages[0].textContent)), 'masthead says Finance edition');
+  await page.keyboard.press('Home'); await settle(page, 900); await shot(page, '21-finance-cover');
+  await page.keyboard.press('ArrowRight'); await settle(page, 1000); await shot(page, '22-finance-spread');
+  console.log(`✓ topics: one brain across topics (Finance ${aff.fin.toFixed(2)} vs Sports ${aff.sp.toFixed(2)}); Finance-only paper: ${edF.articles.length} stories, ${aF.pages} pages [${aF.keys.join(', ')}]`);
+  // the general paper now puts Finance before the topics read less
+  store.state.seen = {}; store.state.lastByKind = {};
+  await generate(page, []); await ready(page);
+  const aG = await audit(page), order = aG.keys.filter(k => k.startsWith('t-'));
+  const edG = Object.values(store.editions).sort((a, b) => a.number - b.number).pop(), firstOf = (t) => edG.articles.findIndex(a => a.topic === t);
+  assert(firstOf('finance') >= 0 && firstOf('finance') < firstOf('sports'), `Finance ranks above Sports: ${firstOf('finance')} vs ${firstOf('sports')}`);
+  console.log(`✓ the general paper follows your taste: first Finance story at #${firstOf('finance') + 1}, first Sports story at #${firstOf('sports') + 1}; topic pages ${order.map(k => k.slice(2)).join(' → ')}`);
+
   // ---------- narrow window (single page) and a very busy week (60+ stories)
   const small = await newPage(browser, 'index.html', { width: 1000, height: 720 }); await ready(small); await settle(small); await hideToast(small);
   const as = await audit(small); assert(as.pages <= 24); assert.deepEqual(as.overflow, [], 'narrow window'); await shot(small, '16-narrow-cover'); await shot(small, '16-narrow-cover'); await small.close();
-  global.__BIG = 55; store.state.seen = {}; store.state.lastGeneratedAt = null; store.config.settings.maxPerSource = 60;
+  global.__BIG = 55; store.state.seen = {}; store.state.lastByKind = {}; store.config.settings.maxPerSource = 60;
   await page.keyboard.press('Home'); await generate(page); await ready(page);
   const edB = Object.values(store.editions).sort((a, b) => a.number - b.number).pop(), ab = await audit(page);
   console.log(`Busy week: ${edB.articles.length} stories → ${ab.pages} pages, ${ab.stories} on the pages, the rest in “All stories”`);

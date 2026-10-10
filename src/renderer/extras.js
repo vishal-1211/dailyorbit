@@ -26,23 +26,28 @@
     }
     return null;
   }
-  X.quiz = function (articles) {
+  const inTopics = (list, topics) => { const t = topics && topics.length ? topics : ['astronomy']; const f = list.filter(x => t.includes(x.topic || 'astronomy')); return f.length ? f : list; };
+  X.quiz = function (articles, topics) {
     const S = B().state, acc = S.quiz.asked >= 5 ? S.quiz.correct / S.quiz.asked : 0.55;
     const levels = acc > 0.75 ? [2, 3, 3] : acc < 0.4 ? [1, 1, 2] : [1, 2, 3]; // adapts to how the reader has been scoring
     const fromEdition = shuffle(articles.filter(a => !a.dup)).map(numberQuestion).filter(Boolean).slice(0, 2);
     const bank = [];
     for (const lv of levels) {
-      const pick = B().pickFresh(C().QUIZ.filter(q => q.level === lv && !bank.includes(q)), 'usedQuiz', 1)[0];
-      if (pick) { const opts = shuffle(pick.options); bank.push({ id: pick.id, q: pick.q, options: opts, answer: opts.indexOf(pick.options[pick.answer]), note: pick.note, level: pick.level }); }
+      const pool = inTopics(C().QUIZ, topics), have = new Set(bank.map(b => b.topic));
+      const fresh = pool.filter(q => q.level === lv && !bank.some(b => b.id === q.id)), spread = fresh.filter(q => !have.has(q.topic)); // mix topics in a general paper
+      const pick = B().pickFresh(spread.length ? spread : fresh, 'usedQuiz', 1)[0];
+      if (pick) { const opts = shuffle(pick.options); bank.push({ id: pick.id, q: pick.q, options: opts, answer: opts.indexOf(pick.options[pick.answer]), note: pick.note, level: pick.level, topic: pick.topic }); }
     }
     return shuffle([...fromEdition, ...bank]).slice(0, 5);
   };
 
   // ------------------------------------------------------------------ did you know / numbers
-  X.facts = function (articles) {
+  X.facts = function (articles, topics) {
     const fromStories = [];
     for (const a of articles) if (!a.dup && a.facts?.[0] && fromStories.length < 3) fromStories.push({ text: a.facts[0], storyId: a.id, source: a.source });
-    const lib = B().pickFresh(C().FACTS, 'usedFacts', 5).map(f => ({ text: f.text }));
+    const pool = inTopics(C().FACTS, topics), byT = {}; for (const f of pool) (byT[f.topic] ||= []).push(f);
+    const mixed = []; for (let i = 0; mixed.length < pool.length; i++) { let any = false; for (const k of Object.keys(byT)) if (byT[k][i]) { mixed.push(byT[k][i]); any = true; } if (!any) break; } // one per topic in turn
+    const lib = B().pickFresh(mixed, 'usedFacts', 5).map(f => ({ text: f.text, topic: f.topic }));
     return { didYouKnow: [...fromStories, ...lib.slice(0, 2)].slice(0, 4), funFacts: lib.slice(2, 5) };
   };
   X.numbers = function (articles) {
@@ -75,9 +80,20 @@
     ['seeing', () => true, '🌬️', 'Telescope: perfectly collimated, cooled and aligned.', 'The atmosphere: “Let me wobble that for you.”']
   ];
   X.memes = function (articles, ctx = {}) {
-    const c = { text: articles.map(a => `${a.title} ${a.excerpt || ''}`).join(' ').toLowerCase(), illum: ctx.illum ?? 0.5, kinds: new Set(ctx.kinds || []), n: articles.length };
+    const topics = ctx.topics && ctx.topics.length ? ctx.topics : ['astronomy'];
+    const textOf = (list) => list.map(a => `${a.title} ${a.excerpt || ''}`).join(' ').toLowerCase();
+    const c = { text: textOf(articles), illum: ctx.illum ?? 0.5, kinds: new Set(ctx.kinds || []), n: articles.length };
     const used = (B().state.usedMemes ||= []);
-    const fit = MEMES.filter(m => m[1](c)), specific = fit.filter(m => !['scope', 'lamp', 'todo', 'seeing'].includes(m[0]));
+    // Astronomy cards plus each topic's cards; a topic's card is tested against that topic's stories only.
+    const all = [...(topics.includes('astronomy') ? MEMES.map(m => ({ m, topic: 'astronomy' })) : []),
+      ...(C().TOPIC_MEMES || []).filter(t => topics.includes(t[0])).map(([topic, ...m]) => ({ m, topic }))];
+    const textByTopic = {}; for (const t of topics) textByTopic[t] = textOf(articles.filter(a => (a.topic || 'astronomy') === t));
+    const fitAll = all.filter(({ m, topic }) => m[1]({ ...c, text: topics.length > 1 ? textByTopic[topic] || '' : c.text }));
+    const generic = new Set(['scope', 'lamp', 'todo', 'seeing', 'emi', 'sip', 'update', 'password', 'octopus', 'traffic', 'sleep', 'gym', 'binge']);
+    const specificFirst = (list) => [...list.filter(x => !generic.has(x.m[0])), ...list.filter(x => generic.has(x.m[0]))];
+    // Prefer two different topics, so a general paper doesn't get two cricket jokes.
+    const ordered = specificFirst(fitAll); const spread = []; for (const x of ordered) if (!spread.some(y => y.topic === x.topic)) spread.push(x); for (const x of ordered) if (!spread.includes(x)) spread.push(x);
+    const fit = spread.map(x => x.m), specific = fit.filter(m => !generic.has(m[0]));
     let pool = [...specific, ...fit.filter(m => !specific.includes(m))].filter(m => !used.includes(m[0]));
     if (pool.length < 2) { used.length = 0; pool = fit; }
     const picks = pool.slice(0, 2);
@@ -87,8 +103,8 @@
   X.MEME_LINK = { label: 'More space memes', url: 'https://www.reddit.com/r/astronomymemes/' };
 
   // ------------------------------------------------------------------ page 3: people
-  X.people = function (articles, date) {
-    const P = C().PEOPLE, today = mmdd(date);
+  X.people = function (articles, date, topics) {
+    const P = inTopics(C().PEOPLE, topics), today = mmdd(date);
     const near = P.find(p => p.born === today) || P.find(p => { if (!p.born) return false; const [m, d] = p.born.split('-').map(Number); const diff = Math.abs(new Date(date.getFullYear(), m - 1, d) - date) / 864e5; return diff <= 3; });
     const star = near ? { ...near, birthday: true } : B().pickFresh(P, 'usedPeople', 1)[0];
     if (near) (B().state.usedPeople ||= []).push(near.id);
@@ -123,6 +139,9 @@
   /** Build all extras for an edition (stored with it, so reopening shows the same paper). */
   X.build = function (ed, ranked, ctx = {}) {
     const date = new Date(ed.until);
-    return { v: 1, quiz: X.quiz(ranked), ...X.facts(ranked), numbers: X.numbers(ranked), memes: X.memes(ranked, ctx), people: X.people(ranked, date), instruments: X.instruments(ranked), onThisDay: X.onThisDay(date) };
+    const topics = ctx.topics && ctx.topics.length ? ctx.topics : ['astronomy'], astro = topics.includes('astronomy');
+    const L = C().MEME_LINKS || {}, link = (topics.length === 1 && L[topics[0]]) || L.default || X.MEME_LINK;
+    return { v: 2, topics, quiz: X.quiz(ranked, topics), ...X.facts(ranked, topics), numbers: X.numbers(ranked), memes: X.memes(ranked, { ...ctx, topics }), memeLink: link, people: X.people(ranked, date, topics),
+      instruments: astro ? X.instruments(ranked) : null, onThisDay: astro ? X.onThisDay(date) : [] };
   };
 })(typeof window !== 'undefined' ? window : globalThis);

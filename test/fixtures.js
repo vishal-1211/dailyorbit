@@ -205,6 +205,105 @@ const ep = (() => { const d = new Date(now - 6 * H); return String(d.getUTCFullY
 feeds['https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=tle'] = `ISS (ZARYA)\n1 25544U 98067A   ${ep}  .00016717  00000-0  10270-3 0  9005\n2 25544  51.6400 208.9163 0006317  69.9862  25.2906 15.49560532    10\nCSS (TIANHE)\n1 48274U 21035A   ${ep}  .00020000  00000-0  23000-3 0  9990\n2 48274  41.4700 100.0000 0005000 300.0000  60.0000 15.60000000    10\n`;
 const cd = (t) => { const d = new Date(t); return `${d.getUTCFullYear()}-${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()]}-${String(d.getUTCDate()).padStart(2, '0')} 08:30`; };
 feeds['https://ssd-api.jpl.nasa.gov/cad.api?dist-max=0.05&date-min=now&date-max=%2B60&sort=date&diameter=true&fullname=true'] = JSON.stringify({ signature: {}, count: 2, fields: ['des', 'orbit_id', 'jd', 'cd', 'dist', 'dist_min', 'dist_max', 'v_rel', 'v_inf', 't_sigma_f', 'h', 'diameter', 'diameter_sigma', 'fullname'], data: [['2026 TA', '3', '0', cd(now + 9 * D), '0.0021', '0.002', '0.0022', '9.1', '9.0', '< 00:01', '27.1', null, null, '       (2026 TA)'], ['2019 XY', '1', '0', cd(now + 30 * D), '0.03', '0.03', '0.03', '5', '5', '00:01', '21.4', null, null, '       (2019 XY)']] });
+// ---- Other desks (made-up stories, for the general paper) ------------------------------------
+const S2 = {
+  'https://feeds.feedburner.com/ndtvprofit-latest': ['NDTV Profit', 'https://www.ndtvprofit.com/markets', [
+    ['sensex-record', 'Sensex closes at a record as banks and IT stocks rally', 'cluster', [
+      'The Sensex rose 612 points, or 0.7 percent, to close at a record 86,240 on Friday, led by gains in private banks and information technology companies.',
+      'The broader Nifty 50 index added 0.6 percent. Foreign investors bought shares worth about 3,100 crore rupees, according to provisional exchange data.',
+      '“Earnings season has started on a stronger note than the market expected,” said a fund manager at a Mumbai brokerage. “Banks are seeing healthy loan growth and lower bad loans.”',
+      'Mid-cap stocks lagged, and analysts cautioned that valuations already price in much of the good news. The rupee was little changed against the dollar.']],
+    ['rbi-holds', 'RBI keeps the repo rate unchanged, signals room to cut later', '', [
+      'The Reserve Bank of India kept its key repo rate at 5.5 percent on Wednesday, as expected, but said easing food prices could give it room to cut rates early next year.',
+      'Inflation fell to 2.1 percent in August, well below the central bank’s 4 percent target, helped by a good monsoon and lower vegetable prices.',
+      'The central bank raised its growth forecast for the year to 6.8 percent. Economists said a cut of 25 basis points in February is now likely.',
+      'Home-loan borrowers on floating rates will see no change in their EMIs for now, bankers said.']]
+  ]],
+  'https://theprint.in/category/economy/feed/': ['ThePrint', 'https://theprint.in/economy', [
+    ['upi-billion', 'UPI crosses 20 billion transactions in a month for the first time', '', [
+      'India’s Unified Payments Interface processed 20.4 billion transactions in September, the first time monthly volume has crossed 20 billion, according to the National Payments Corporation of India.',
+      'The value of those payments rose to about 25 lakh crore rupees. Small-value payments at shops and street stalls account for most of the growth.',
+      'Officials said UPI is now accepted in more than seven countries, and a link with several more is planned for next year.',
+      'Banks have raised concerns about the cost of running the system, since most UPI payments carry no fee for merchants.']]
+  ]],
+  'https://www.cricinfo.com/rss/content/story/feeds/0.xml': ['ESPNcricinfo', 'https://www.espncricinfo.com/story', [
+    ['india-win-series', 'India seal the Test series with a seven-wicket win in Ahmedabad', 'aurora', [
+      'India completed a 2-0 series win over West Indies on the fourth day in Ahmedabad, chasing 143 for the loss of three wickets with more than a session to spare.',
+      'Opener Yashasvi Jaiswal made an unbeaten 71, his third half-century of the series, while the spinners shared 15 wickets across the two innings.',
+      '“The way the bowlers kept coming back on a flat surface is what pleased me most,” the captain said after the match. “We were patient and it paid off.”',
+      'India next play a three-match one-day series against Australia, starting on 19 October in Perth.']],
+    ['ipl-auction', 'IPL franchises set to retain fewer players ahead of the next auction', '', [
+      'Teams in the Indian Premier League will be able to retain at most five players before next year’s mega auction, the league’s governing council confirmed on Thursday.',
+      'Each franchise will have a purse of 140 crore rupees, an increase of 20 crore over the last auction.',
+      'Several overseas stars are expected to enter the auction pool, which is likely to be held in Jeddah in late November.',
+      'Franchise owners had asked for more retentions, saying long-term fan loyalty depends on keeping familiar faces.']]
+  ]],
+  'https://www.skysports.com/rss/11095': ['Sky Sports', 'https://www.skysports.com/football/news', [
+    ['derby-draw', 'Late equaliser earns a draw in a breathless north London derby', 'galaxy', [
+      'A stoppage-time header earned a 2-2 draw in a north London derby that swung back and forth for 95 minutes on Saturday.',
+      'The home side led twice, through a first-half penalty and a curling shot from outside the box, but could not hold on.',
+      '“That is what derbies are about — you never stop running,” the visiting manager said. VAR checked the late goal for offside for more than three minutes before it stood.',
+      'The result leaves both clubs three points behind the leaders after eight matches.']]
+  ]],
+  'https://techcrunch.com/feed/': ['TechCrunch', 'https://techcrunch.com/2026/10', [
+    ['ai-laptop', 'New laptops run large AI models entirely offline', 'planet', [
+      'A new generation of laptops can run large language models with tens of billions of parameters entirely on the device, without sending anything to the cloud.',
+      'The machines pair 64 gigabytes of fast memory with dedicated AI chips. In tests, a 30-billion-parameter model answered questions at about 25 words per second.',
+      '“Privacy-minded users are the first customers,” one chip designer said. “They want the assistant, but not the data trail.”',
+      'Battery life suffers under heavy AI workloads, falling to roughly four hours, according to early reviews.']],
+    ['passkeys', 'More banks drop passwords in favour of passkeys', '', [
+      'Several large banks said this week that customers can now sign in with passkeys, which use a fingerprint or face scan on their phone instead of a password.',
+      'Passkeys cannot be phished in the usual way, because they only work on the genuine website or app, security researchers explained.',
+      'About 15 percent of the banks’ app users switched within the first month, one bank said.',
+      'Older phones without biometric sensors can still use a device PIN.']]
+  ]],
+  'https://www.aljazeera.com/xml/rss/all.xml': ['Al Jazeera', 'https://www.aljazeera.com/news/2026/10', [
+    ['climate-summit', 'Climate talks open with a push to triple renewable energy', 'sun', [
+      'Delegates from almost 200 countries opened two weeks of climate talks on Monday with a call to triple renewable energy capacity by 2030.',
+      'The host government said finance for poorer nations would be the main test of the summit. A new fund for climate damage has so far received pledges of about 800 million dollars.',
+      '“Every fraction of a degree matters,” the UN climate chief told the opening session. “We are not on track, but the tools to get on track are cheaper than ever.”',
+      'Small island states are pressing for a firm date to phase out coal.']],
+    ['election-turnout', 'Record turnout as voters choose a new parliament', '', [
+      'Turnout reached 71 percent in Sunday’s parliamentary election, the highest in three decades, the electoral commission said.',
+      'Early results suggest no party will win a majority, setting up weeks of coalition talks.',
+      'Observers from regional bodies said voting was largely peaceful and well organised.',
+      'The new parliament must choose a prime minister within 30 days of its first sitting.']]
+  ]],
+  'https://feeds.feedburner.com/ndtvnews-india-news': ['NDTV', 'https://www.ndtv.com/india-news', [
+    ['metro-line', 'Ahmedabad’s new metro line opens, cutting commute times by half', 'rocket', [
+      'A new 21-kilometre metro line opened in Ahmedabad on Friday, linking the city centre with GIFT City and the airport.',
+      'Officials expect about 1.5 lakh passengers a day within a year. Fares range from 5 to 40 rupees.',
+      '“My office trip used to take an hour in traffic. Today it took 28 minutes,” one commuter said on the first morning.',
+      'The line is the third phase of the Ahmedabad–Gandhinagar metro project.']]
+  ]],
+  'https://www.sciencedaily.com/rss/all.xml': ['ScienceDaily', 'https://www.sciencedaily.com/releases/2026/10', [
+    ['octopus-dreams', 'Sleeping octopuses replay the day’s colour patterns', 'nebula', [
+      'Octopuses flash through skin patterns during a brief “active” stage of sleep that resembles dreaming, a new study has found.',
+      'Researchers filmed 12 octopuses over several weeks and found that the patterns shown during active sleep closely matched those the animals used while awake.',
+      '“It looks like they are replaying their waking experiences,” the lead author said. “That is what we think dreaming does for memory in mammals.”',
+      'Octopuses and humans last shared a common ancestor more than 500 million years ago, so the behaviour evolved independently.']]
+  ]],
+  'https://feeds.npr.org/1128/rss.xml': ['NPR', 'https://www.npr.org/sections/health', [
+    ['walk-study', 'A daily 20-minute walk lowers heart risk, large study finds', '', [
+      'People who walked briskly for at least 20 minutes a day had a 17 percent lower risk of heart attack and stroke than those who rarely walked, according to a study of 90,000 adults.',
+      'The benefit appeared even in people who did no other exercise, the researchers reported.',
+      '“You do not need a gym membership,” said one of the authors. “Walking at a pace where talking gets a bit harder is enough.”',
+      'The study followed participants for an average of eight years.']]
+  ]],
+  'https://www.bollywoodhungama.com/rss/news.xml': ['Bollywood Hungama', 'https://www.bollywoodhungama.com/news', [
+    ['box-office', 'Festival release crosses 300 crore at the box office', 'moon', [
+      'The big festival release crossed 300 crore rupees at the domestic box office in its second weekend, trade analysts said.',
+      'The film, a period drama with a large ensemble cast, has also done well overseas, especially in the Gulf and North America.',
+      '“Audiences are coming back for the big-screen experience,” one exhibitor said. Weekday collections dropped by only 40 percent from the first week.',
+      'The film is expected to stream on a major platform eight weeks after its theatrical release.']]
+  ]]
+};
+let tOff = 0;
+for (const [feedUrl, [site, base, stories]] of Object.entries(S2)) {
+  const items = stories.map(([slug, title, im, paras]) => { const key = `x-${slug}`; P[key] = paras; tOff += 1; return summaryStory(site, base, slug, title, key, now - (3 + tOff * 2.3) * H, im ? img(im) : '', 'Staff reporter'); });
+  feeds[feedUrl] = rss(site, items);
+}
+
 // Optional stress test: a very busy week (set global.__BIG = n extra stories)
 function bigFeed() {
   const topics = ['Mars rover finds', 'Webb telescope spots', 'New exoplanet shows', 'Black hole reveals', 'Lunar mission returns', 'Comet surprises with', 'Solar flare triggers', 'Galaxy survey maps', 'Rocket launch carries', 'Asteroid sample holds'];

@@ -13,7 +13,7 @@ npm run fetch-model     # optional: downloads the 25 MB language model into ./mo
 npm start
 ```
 
-`Run Astro Gazette.bat` does the same three steps.
+`Run Daily Orbit.bat` does the same three steps.
 
 ## Tests
 

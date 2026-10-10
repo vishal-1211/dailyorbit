@@ -28,7 +28,8 @@ const LEARNING_FILE = () => path.join(DATA(), 'learning.json'); // the reading l
 const MAX_EDITIONS = 30;
 
 const DEFAULT_SETTINGS = {
-  windowDays: 7, maxPerSource: 15, theme: 'night', paperSize: 'm', readerSize: 'm',
+  windowDays: 7, maxPerSource: 10,
+  topics: ['world', 'india', 'finance', 'tech', 'science', 'sports', 'astronomy', 'health', 'culture'], // topics in the "Everything" paper, theme: 'night', paperSize: 'm', readerSize: 'm',
   maxPages: 24,          // most pages a paper may have
   turnGestures: false,   // false = pages turn only with the arrow buttons / arrow keys
   readerContinuous: false, // reader: all pages of a story in one continuous two-page scroll
@@ -58,7 +59,8 @@ function cleanSource(s) {
     name: String(s.name || s.url).slice(0, 80),
     url: String(s.url).trim(),
     enabled: !!s.enabled,
-    astroOnly: !!s.astroOnly
+    topic: String(s.topic || 'astronomy').slice(0, 20),
+    topicOnly: !!(s.topicOnly ?? s.astroOnly)
   };
   if (s.urlMatch) out.urlMatch = String(s.urlMatch).slice(0, 120);
   return out;
@@ -85,7 +87,8 @@ function saveConfig(cfg) {
 }
 
 function getState() {
-  return { lastGeneratedAt: null, editionCount: 0, seen: {}, ...readJSON(STATE_FILE(), {}) };
+  // lastByKind: when each kind of paper ("all", "finance", "finance+sports"…) was last printed; seen is shared
+  return { lastByKind: {}, editionCount: 0, seen: {}, ...readJSON(STATE_FILE(), {}) };
 }
 
 // ---------------------------------------------------------------------------
@@ -119,7 +122,7 @@ function createMainWindow() {
   mainWin = new BrowserWindow({
     width: 1440, height: 940, minWidth: 960, minHeight: 640,
     backgroundColor: OVERLAY[theme].color,
-    title: 'The Astro Gazette',
+    title: 'The Daily Orbit',
     icon: path.join(__dirname, '..', 'build', 'icon.png'),
     titleBarStyle: 'hidden',
     titleBarOverlay: { ...OVERLAY[theme], height: 44 },
@@ -139,7 +142,7 @@ function openSourcesWindow() {
     width: 860, height: 820, minWidth: 700, minHeight: 560,
     parent: mainWin || undefined,
     backgroundColor: OVERLAY[theme].color,
-    title: 'Sources · The Astro Gazette',
+    title: 'Sources · The Daily Orbit',
     titleBarStyle: 'hidden',
     titleBarOverlay: { ...OVERLAY[theme], height: 44 },
     show: false,
@@ -367,12 +370,16 @@ function registerIpc() {
     await netSes.closeAllConnections();
   });
 
-  ipcMain.handle('edition:plan', () => {
+  ipcMain.handle('edition:plan', (_e, kind = 'all') => {
     const { settings } = getConfig();
     const state = getState();
+    const k = /^[a-z+]{1,120}$/.test(String(kind)) ? String(kind) : 'all';
+    const last = (state.lastByKind || {})[k] || null;
     return {
-      ...planWindow(state.lastGeneratedAt, Date.now(), settings.windowDays),
-      lastGeneratedAt: state.lastGeneratedAt,
+      ...planWindow(last, Date.now(), settings.windowDays),
+      kind: k,
+      lastGeneratedAt: last,
+      lastByKind: state.lastByKind || {},
       nextNumber: (state.editionCount || 0) + 1,
       seen: Object.keys(state.seen || {})
     };
@@ -388,7 +395,8 @@ function registerIpc() {
     for (const [u, t] of Object.entries(state.seen || {})) if (now - t < 21 * DAY) seen[u] = t;
     for (const u of consideredUrls || []) seen[u] = now;
 
-    const next = { lastGeneratedAt: edition.until, editionCount: (state.editionCount || 0) + 1, seen };
+    const kind = /^[a-z+]{1,120}$/.test(String(edition.kind)) ? edition.kind : 'all';
+    const next = { lastByKind: { ...(state.lastByKind || {}), [kind]: edition.until }, editionCount: (state.editionCount || 0) + 1, seen };
     edition.number = next.editionCount;
     fs.mkdirSync(EDITIONS_DIR(), { recursive: true });
     writeJSON(path.join(EDITIONS_DIR(), `${edition.id}.json`), edition);
@@ -407,7 +415,7 @@ function registerIpc() {
     try {
       return fs.readdirSync(EDITIONS_DIR()).filter(f => f.endsWith('.json')).sort().reverse().map(f => {
         const e = readJSON(path.join(EDITIONS_DIR(), f), null);
-        return e && { id: e.id, number: e.number, createdAt: e.createdAt, since: e.since, until: e.until, count: (e.articles || []).length };
+        return e && { id: e.id, number: e.number, createdAt: e.createdAt, since: e.since, until: e.until, kind: e.kind || 'all', count: (e.articles || []).length };
       }).filter(Boolean);
     } catch { return []; }
   });
@@ -458,7 +466,7 @@ if (!app.requestSingleInstanceLock()) {
   });
   app.whenReady().then(async () => {
     Menu.setApplicationMenu(null);
-    if (process.platform === 'win32') app.setAppUserModelId('com.vishal.astrogazette');
+    if (process.platform === 'win32') app.setAppUserModelId('com.vishal.dailyorbit');
     // The app's own windows may never touch the network: everything they show is local.
     session.defaultSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*'] }, (_d, cb) => cb({ cancel: true }));
     session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) => cb(false));

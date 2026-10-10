@@ -16,11 +16,12 @@ All learning happens on the laptop, in `src/renderer/brain.js`. No paid service,
 
 1. **Understanding a story.** Each story gets a summary, opening paragraphs, key facts, numbers and quotes by extractive methods (sentence scoring, no generation).
 2. **Word meanings.** The app builds its own word vectors from every article it downloads (random indexing, 48 dimensions, up to 4,000 terms). If the optional pre-trained model (all-MiniLM-L6-v2) is installed, its sentence embeddings are used as well.
-3. **Taste.** An online logistic regression over hashed features (source, section, length, pictures, author, title and body terms) plus a taste vector in each embedding space. It updates after every signal.
+3. **Taste.** An online logistic regression over hashed features (topic, source, section, length, pictures, author, title and body terms) plus a taste vector in each embedding space. It updates after every signal.
 4. **Ranking.** `rank = (1 − α) × editorial quality + α × predicted interest`, where α grows from 0 to 0.6 over the first 25 lessons. Quality covers freshness, length, pictures and how many publishers covered the story.
-5. **Variety.** Every fifth slot goes to a good story outside the reader's usual taste, but never one the model is confident the reader dislikes.
-6. **Merging.** The same story from several publishers is clustered and shown once.
-7. **Sections.** Stories the keyword rules cannot place go to the nearest learned section centre.
+5. **Topics.** One model serves every desk. Topic weights are kept centred on zero, so they only say which desks you prefer over others. The Everything paper orders its desk pages by them and gives each desk pages in proportion to (preference × amount of news), with at least one page for every desk that has news.
+6. **Variety.** Every fifth slot goes to a good story outside the reader's usual taste, but never one the model is confident the reader dislikes.
+7. **Merging.** The same story from several publishers is clustered and shown once.
+8. **Sections.** Stories the keyword rules cannot place go to the nearest learned section of the same desk.
 
 ## Checking that it works
 

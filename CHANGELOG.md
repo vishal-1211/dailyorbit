@@ -1,6 +1,26 @@
 # Changelog
 
-Notable changes to The Astro Gazette. Versions follow [semantic versioning](https://semver.org/).
+Notable changes to The Daily Orbit. Versions follow [semantic versioning](https://semver.org/). Versions before 1.0.0 were released as The Astro Gazette (astronomy only) and are kept below for history.
+
+## [1.0.0] — 2026-10-10 · The Daily Orbit
+
+Built at the Claude Build Day in Mumbai.
+
+### Added
+- New name and look: **The Daily Orbit**, with a new logo, masthead and colour per desk.
+- **Nine desks**: World, India, Finance, Technology, Science, Sports, Astronomy, Health, Entertainment, each with its own sections and a keyword filter for mixed feeds.
+- **Newsstand** home screen: print **Everything** or any mix of desks. Each kind of paper keeps its own "since last edition" window; stories are never repeated across papers.
+- About 70 pre-filled sources grouped by desk (checked 10 Oct 2026); Sources window with desk tabs, a desk picker for new sources, and a switch for which desks go into the Everything paper.
+- **One brain across topics**: the learning model now knows topics. Topic preferences are kept relative, so liking one desk lifts it above the others. The Everything paper orders desks and shares out pages by what you read, while always giving every desk with news at least one page.
+- Page 3 people, did-you-know facts, quiz questions and meme cards for every desk; the quiz and memes mix desks in a general paper.
+- Topic papers get their own masthead ("Finance edition"); the telescope and sky pages appear only when Astronomy is in the paper.
+- Undated feed items (e.g. Formula1.com) are now accepted.
+
+### Kept from The Astro Gazette 2.1.0
+Page turning on buttons only, continuous two-page reading, zoom and fit-width, "Why this?", model check and scorecard, pre-trained language model, privacy design and optional Tor.
+
+### Not yet verified on a real Windows install
+The new feeds have only been checked from the build machine, not from the app on Windows. The same items as before also remain unverified there (pre-trained model, private network session and saved pictures, Tor, live orbit and asteroid data).
 
 ## [2.1.0] — 2026-10-03
 
@@ -44,6 +64,6 @@ Notable changes to The Astro Gazette. Versions follow [semantic versioning](http
 
 - First version: **Generate edition** gathers free-to-read astronomy stories since the last edition (at most the last 7 days), skips paywalled ones, and shows them as a newspaper with sections and page-turn animation. Separate Sources window. Night and day themes.
 
-## Not yet verified on a real Windows install
+## Not yet verified (Astro Gazette 2.x)
 
 The automated tests run in a browser with a stand-in network. Still to be confirmed by hand: the pre-trained language model, the private network session and saved pictures, Tor routing, and the live orbit and asteroid data addresses.

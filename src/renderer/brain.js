@@ -152,7 +152,7 @@
     return norm(v);
   };
   B.features = function (a) {
-    const f = [`src:${a.sourceId}`, `sec:${a.section}`, `len:${a.words < 350 ? 'short' : a.words < 900 ? 'mid' : 'long'}`, a.image ? 'img:1' : 'img:0'];
+    const f = [`top:${a.topic || 'astronomy'}`, `src:${a.sourceId}`, `sec:${a.section}`, `len:${a.words < 350 ? 'short' : a.words < 900 ? 'mid' : 'long'}`, a.image ? 'img:1' : 'img:0'];
     if (a.author) f.push(`au:${a.author.toLowerCase().slice(0, 40)}`);
     for (const t of new Set(B.tokenize(a.title))) f.push(`t:${t}`);
     for (const [t] of (a.terms || []).slice(0, 12)) f.push(`w:${t}`);
@@ -173,6 +173,11 @@
     const S = B.state, feats = B.features(a), p = B.personal(a), g = (y - p) * weight, lr = 0.25 / Math.sqrt(feats.length);
     S.bias += 0.05 * g;
     for (const f of feats) { S.w[f] = ((S.w[f] || 0) * 0.999) + lr * g; if (Math.abs(S.w[f]) < 1e-4) delete S.w[f]; }
+    // Topic weights are relative: keep them centred on zero, so they say "more World than Sports",
+    // not "less of everything" (the bias already carries the overall level).
+    const tk = Object.keys(S.w).filter(k => k.startsWith('top:'));
+    if (tk.length) { const known = new Set([...tk, ...(S.topicsSeen || [])]); const mean = tk.reduce((m, k) => m + S.w[k], 0) / known.size; for (const k of tk) S.w[k] -= mean; }
+    const ft = feats[0]; if (ft.startsWith('top:') && !(S.topicsSeen ||= []).includes(ft)) S.topicsSeen.push(ft);
     const dv = B.docVec(a); for (let i = 0; i < DIM; i++) S.profile[i] = S.profile[i] * 0.995 + 0.3 * g * dv[i];
     if (a.vec) { // taste vector in the pre-trained model's space
       if (!S.profileX || S.profileX.length !== a.vec.length) S.profileX = new Array(a.vec.length).fill(0);
@@ -204,7 +209,7 @@
     }
     const ids = Object.keys(S.trained); if (ids.length > 40) ids.sort().slice(0, ids.length - 40).forEach(k => delete S.trained[k]);
   };
-  B.explainLabel = function (f) { const S = B.state, srcName = B.sourceNames || {}, secName = { sky: 'skywatching', solar: 'the solar system', missions: 'missions', deep: 'deep space', frontiers: 'frontiers' }; const label = (f) => f.replace(/^src:(.*)$/, (_m, id) => srcName[id] || id).replace(/^sec:(.*)$/, (_m, k) => secName[k] || k).replace(/^(t|w):(.*)$/, (_m, _k, st) => (S.surf || {})[st] || st).replace(/^len:short/, 'short reads').replace(/^len:mid/, 'medium reads').replace(/^len:long/, 'long reads').replace(/^au:/, 'writer: ').replace(/^img:1/, 'stories with pictures').replace(/^img:0/, 'text-only stories'); return label(f); };
+  B.explainLabel = function (f) { const S = B.state, srcName = B.sourceNames || {}, secName = { sky: 'skywatching', solar: 'the solar system', missions: 'missions', deep: 'deep space', frontiers: 'frontiers' }, AGx = root.AG || {}; const label = (f) => f.replace(/^top:(.*)$/, (_m, id) => `${(AGx.topicById?.[id]?.name || id)} (topic)`).replace(/^src:(.*)$/, (_m, id) => srcName[id] || id).replace(/^sec:(.*)$/, (_m, k) => (AGx.sectionName ? AGx.sectionName(k) : '') || secName[k] || k).replace(/^(t|w):(.*)$/, (_m, _k, st) => (S.surf || {})[st] || st).replace(/^len:short/, 'short reads').replace(/^len:mid/, 'medium reads').replace(/^len:long/, 'long reads').replace(/^au:/, 'writer: ').replace(/^img:1/, 'stories with pictures').replace(/^img:0/, 'text-only stories'); return label(f); };
   /** Why a story got its score: the strongest reasons for and against, in plain words. */
   B.why = function (a) {
     const S = B.state, ex = B.explainLabel || ((f) => f);
@@ -212,6 +217,8 @@
     const uniq = (arr) => [...new Map(arr.map(([f, w]) => [ex(f), w])).keys()];
     return { p: B.personal(a), lessons: Math.round(S.n), forIt: uniq(parts.filter(x => x[1] > 0).sort((x, y) => y[1] - x[1])).slice(0, 5), against: uniq(parts.filter(x => x[1] < 0).sort((x, y) => x[1] - y[1])).slice(0, 4) };
   };
+  /** How much the reader leans towards a topic, from what they have read and rated (0 = neutral). */
+  B.topicAffinity = (id) => B.state.w[`top:${id}`] || 0;
   B.explain = function () {
     const S = B.state, e = Object.entries(S.w).filter(([f]) => !/^(w|t):.{0,3}$/.test(f)), label = B.explainLabel;
     const uniq = (arr) => [...new Map(arr.map(([f, w]) => [label(f), w])).entries()];
@@ -255,13 +262,17 @@
     return out;
   };
   /** Sections adapt: stories the keyword rules can't place go to the nearest learned section. */
+  // A story the keyword rules could not place (its topic's catch-all section) moves to the nearest
+  // learned section of the SAME topic. Catch-all keys are listed in AG.TOPICS (defaults to Astronomy's).
+  const catchAll = () => new Set(root.AG && root.AG.TOPICS ? root.AG.TOPICS.map(t => t.other.key) : ['frontiers']);
+  const topicOf = (k) => (root.AG && root.AG.sectionTopic ? root.AG.sectionTopic(k) : 'astronomy');
   B.adaptSections = function (articles) {
-    const S = B.state;
-    for (const a of articles) { if (a.section === 'frontiers') continue; const c = (S.centroids[a.section] ||= new Array(DIM).fill(0)), v = B.docVec(a); for (let i = 0; i < DIM; i++) c[i] = c[i] * 0.98 + v[i]; }
+    const S = B.state, other = catchAll();
+    for (const a of articles) { if (other.has(a.section)) continue; const c = (S.centroids[a.section] ||= new Array(DIM).fill(0)), v = B.docVec(a); for (let i = 0; i < DIM; i++) c[i] = c[i] * 0.98 + v[i]; }
     for (const a of articles) {
-      if (a.section !== 'frontiers') continue;
-      const v = B.docVec(a); let best = null, bs = 0.35;
-      for (const [k, c] of Object.entries(S.centroids)) { const s = dot(v, norm(c)); if (s > bs) { bs = s; best = k; } }
+      if (!other.has(a.section)) continue;
+      const v = B.docVec(a), tp = topicOf(a.section); let best = null, bs = 0.35;
+      for (const [k, c] of Object.entries(S.centroids)) { if (topicOf(k) !== tp) continue; const s = dot(v, norm(c)); if (s > bs) { bs = s; best = k; } }
       if (best) { a.section = best; a.sectionLearned = true; }
     }
   };

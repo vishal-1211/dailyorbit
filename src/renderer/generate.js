@@ -2,26 +2,7 @@
 (function () {
   const AG = (window.AG = window.AG || {});
 
-  const ASTRO = /\b(astronom\w*|astrophys\w*|space|spacecraft|cosmo\w*|galax\w*|star|stars|stellar|nebula\w*|planet\w*|exoplanet\w*|moon|lunar|sun|solar|mars|martian|jupiter|saturn|venus|mercury|uranus|neptune|pluto|asteroid\w*|comet\w*|meteor\w*|eclipse|black holes?|supernova\w*|telescope\w*|hubble|webb|jwst|orbit\w*|rocket|launch\w*|astronaut\w*|iss|artemis|rover|lander|probe|universe|dark matter|dark energy|quasar\w*|pulsar\w*|aurora\w*|constellation\w*|night sky|skywatch\w*|apod|cosmic|interstellar|kuiper|europa|titan|enceladus|milky way)\b/i;
-
-  const SECTIONS = [
-    { key: 'sky', name: 'Skywatching', re: /\b(night sky|skywatch\w*|how to see|see the|visible|meteor shower|eclipse|full moon|harvest moon|new moon|moon phase|conjunction|occultation|aurora\w*|constellation\w*|this week'?s sky|observ(e|ing) (the|tonight)|binoculars|stargaz\w*|planets? (at|in the) (dawn|dusk|evening|morning))\b/i },
-    { key: 'solar', name: 'Solar System', re: /\b(mars|martian|jupiter|saturn|venus|mercury|uranus|neptune|pluto|asteroid\w*|comet\w*|sun|solar|sunspot\w*|lunar|moon|europa|titan|enceladus|io|ganymede|kuiper|jezero|meteorite\w*)\b/i },
-    { key: 'missions', name: 'Missions & Spaceflight', re: /\b(launch\w*|rocket\w*|spacecraft|mission|astronaut\w*|iss|space station|artemis|spacex|starship|orbiter|rover|lander|probe|satellite\w*|flyby|gravity assist|engineer\w*|crew)\b/i },
-    { key: 'deep', name: 'Deep Space', re: /\b(galax\w*|black holes?|nebula\w*|stars?|stellar|supernova\w*|exoplanet\w*|cosmolog\w*|dark matter|dark energy|quasar\w*|pulsar\w*|universe|cluster\w*|webb|hubble|big bang|gravitational waves?|milky way|brown dwarf\w*)\b/i }
-  ];
-  const OTHER = { key: 'frontiers', name: 'Frontiers' };
-
   AG.SKY_URLS = { tle: 'https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=tle', cad: 'https://ssd-api.jpl.nasa.gov/cad.api?dist-max=0.05&date-min=now&date-max=%2B60&sort=date&diameter=true&fullname=true' };
-  AG.SECTION_ORDER = [...SECTIONS.map(s => ({ key: s.key, name: s.name })), OTHER];
-
-  function classify(title, excerpt) {
-    const t = `${title} ${excerpt}`;
-    // Headline matters most: try the title first, then title+excerpt.
-    for (const s of SECTIONS) if (s.re.test(title)) return s.key;
-    for (const s of SECTIONS) if (s.re.test(t)) return s.key;
-    return OTHER.key;
-  }
 
   function titleKey(t) { return t.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').slice(0, 10).join(' '); }
 
@@ -36,12 +17,16 @@
   const MIN_WORDS = 80;       // shorter extractions are treated as failures
 
   /**
-   * @param {object} opts { plan, config, onProgress(evt), isCancelled() }
+   * @param {object} opts { plan, config, topics: ['all'] | ['finance', …], onProgress(evt), isCancelled() }
    * @returns {{ edition, considered: string[] }}
    */
-  AG.generateEdition = async function ({ plan, config, onProgress = () => {}, isCancelled = () => false }) {
-    const sources = config.sources.filter(s => s.enabled);
-    const maxPer = Math.max(1, Math.min(50, Number(config.settings.maxPerSource) || 15));
+  AG.generateEdition = async function ({ plan, config, topics = ['all'], onProgress = () => {}, isCancelled = () => false }) {
+    const kind = AG.editionKind(topics);
+    const wanted = kind === 'all' ? (config.settings.topics?.length ? config.settings.topics : AG.TOPICS.map(t => t.id)) : kind.split('+');
+    const sources = config.sources.filter(s => s.enabled && wanted.includes(s.topic || 'astronomy'));
+    // A paper with many topics reads fewer stories per publisher, so it stays quick to print.
+    const perTopic = wanted.length > 2 ? 0.6 : 1;
+    const maxPer = Math.max(2, Math.round(Math.min(50, Number(config.settings.maxPerSource) || 10) * perTopic));
     const seen = new Set(plan.seen || []);
     const overlap = 6 * 60 * 60 * 1000; // re-check a few hours before the last edition; `seen` removes repeats
     const sinceCheck = plan.mode === 'since-last' ? plan.since - overlap : plan.since;
@@ -50,7 +35,7 @@
     const considered = [];
     const articles = [];
     const healed = [];
-    const stats = sources.map(s => ({ id: s.id, name: s.name, status: 'queued', found: 0, used: 0, paywalled: 0, failed: 0, error: '' }));
+    const stats = sources.map(s => ({ id: s.id, name: s.name, topic: s.topic || 'astronomy', status: 'queued', found: 0, used: 0, paywalled: 0, failed: 0, error: '' }));
     const emit = () => onProgress({ stats: stats.map(s => ({ ...s })) });
     emit();
 
@@ -72,11 +57,14 @@
       if (!res.ok && !feed) { st.status = 'error'; st.error = res.error || `HTTP ${res.status}`; emit(); return; }
       if (!feed) { st.status = 'error'; st.error = 'Not a valid RSS/Atom feed'; emit(); return; }
 
+      // Undated items (some feeds have none): treat as published now; "seen" stops repeats.
+      for (const i of feed.items) if (isNaN(i.published) || !i.published) i.published = plan.until;
       let items = feed.items
-        .filter(i => !isNaN(i.published) && i.published >= sinceCheck && i.published <= plan.until + 3600e3)
+        .filter(i => i.published >= sinceCheck && i.published <= plan.until + 3600e3)
         .filter(i => !seen.has(AG.canonicalUrl(i.url)));
       if (src.urlMatch) items = items.filter(i => i.url.includes(src.urlMatch));
-      if (src.astroOnly) items = items.filter(i => ASTRO.test(`${i.title} ${AG.htmlToText(i.summaryHtml).slice(0, 400)}`));
+      const topic = AG.topicById[src.topic] || AG.topicById.astronomy;
+      if (src.topicOnly ?? src.astroOnly) items = items.filter(i => topic.keep.test(`${i.title} ${AG.htmlToText(i.summaryHtml).slice(0, 400)}`));
       items.sort((a, b) => b.published - a.published);
       items = items.slice(0, maxPer);
       st.found = items.length;
@@ -130,7 +118,8 @@
           html: art.html,
           words: art.words,
           partial: !!art.partial,
-          section: classify(AG.htmlToText(item.title), excerpt),
+          topic: topic.id,
+          section: AG.classifyIn(topic.id, AG.htmlToText(item.title), excerpt),
           read: false
         });
         st.used++; emit();
@@ -169,8 +158,9 @@
     for (const s of stats) { const h = (B.state.health[s.id] ||= { fails: 0 }); h.fails = s.status === 'error' ? h.fails + 1 : 0; s.failing = h.fails; }
 
     // --- public sky data (the same files for everyone; your location is never sent)
-    onProgress({ stats: stats.map(s => ({ ...s })), note: 'Fetching orbit data for your sky page…' });
-    const [tle, cad] = await Promise.all([window.api.fetchText(AG.SKY_URLS.tle), window.api.fetchText(AG.SKY_URLS.cad)]);
+    const wantsSky = wanted.includes('astronomy');
+    if (wantsSky) onProgress({ stats: stats.map(s => ({ ...s })), note: 'Fetching orbit data for your sky page…' });
+    const [tle, cad] = wantsSky ? await Promise.all([window.api.fetchText(AG.SKY_URLS.tle), window.api.fetchText(AG.SKY_URLS.cad)]) : [{ ok: false }, { ok: false }];
     let cadJson = null; try { const j = JSON.parse(cad.ok ? cad.text : 'null'); if (j && Array.isArray(j.fields)) cadJson = { fields: j.fields, data: (j.data || []).slice(0, 120) }; } catch { /* optional */ }
     const sky = { tle: tle.ok && /^1 \d{5}/m.test(tle.text) ? tle.text.slice(0, 60000) : null, cad: cadJson, fetchedAt: Date.now() };
 
@@ -180,6 +170,8 @@
       since: plan.since,
       until: plan.until,
       mode: plan.mode,
+      kind,
+      topics: wanted,
       gapDays: plan.gapDays,
       windowDays: plan.windowDays,
       articles: ranked,
@@ -188,7 +180,7 @@
     };
     const skyNow = AG.skyFor ? AG.skyFor(config.settings.location, sky) : null;
     const soon = (skyNow?.events || []).filter(e => e.when - Date.now() < 12 * 864e5).map(e => e.kind);
-    edition.extras = AG.Extras.build(edition, ranked.filter(a => !a.dup), { illum: skyNow?.tonight?.illum ?? AG.moonPhase(new Date()).illum, kinds: soon });
+    edition.extras = AG.Extras.build(edition, ranked.filter(a => !a.dup), { illum: skyNow?.tonight?.illum ?? AG.moonPhase(new Date()).illum, kinds: soon, topics: wanted });
     return { edition, considered, healed };
   };
 })();

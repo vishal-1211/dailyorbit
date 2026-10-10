@@ -1,12 +1,15 @@
 {
-  "name": "astro-gazette",
-  "productName": "The Astro Gazette",
-  "version": "2.1.0",
-  "description": "Your personal astronomy newspaper",
+  "name": "daily-orbit",
+  "productName": "The Daily Orbit",
+  "version": "1.0.0",
+  "description": "Your personal daily newspaper: world, India, finance, tech, science, sports, astronomy and more, learned on your laptop",
   "main": "src/main.js",
   "author": "Vishal",
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/vishal-1211/AstroGazette.git" },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win nsis portable",
@@ -14,8 +17,8 @@
     "fetch-model": "node scripts/fetch-model.js"
   },
   "build": {
-    "appId": "com.vishal.astrogazette",
-    "productName": "The Astro Gazette",
+    "appId": "com.vishal.dailyorbit",
+    "productName": "The Daily Orbit",
     "files": [
       "src/**/*",
       "build/icon.png",
@@ -35,8 +38,8 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "shortcutName": "The Astro Gazette",
-      "artifactName": "AstroGazette-Setup-${version}.exe",
+      "shortcutName": "The Daily Orbit",
+      "artifactName": "DailyOrbit-Setup-${version}.exe",
       "createDesktopShortcut": true
     },
     "directories": {
@@ -44,7 +47,7 @@
       "buildResources": "build"
     },
     "portable": {
-      "artifactName": "AstroGazette-Portable-${version}.exe"
+      "artifactName": "DailyOrbit-Portable-${version}.exe"
     },
     "asarUnpack": [
       "node_modules/onnxruntime-node/**",

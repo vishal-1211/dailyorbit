@@ -70,3 +70,12 @@ body { overflow: auto; }
 .settings { grid-template-columns: repeat(4, 1fr); }
 #check-result { white-space: pre-line; } #check-result b { color: var(--ink); }
 .checkline { display: flex; gap: 8px; margin: 3px 0; } .checkline i { font-style: normal; width: 1.2em; }
+
+/* Topic tabs (The Daily Orbit) */
+.src-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.src-tab { border: 1px solid var(--rule); background: var(--paper-2); color: var(--ink); border-radius: 999px; padding: 7px 12px; font: 600 12.5px/1 var(--f-ui); cursor: pointer; }
+.src-tab i { font-style: normal; color: var(--muted); font-weight: 500; margin-left: 4px; }
+.src-tab.on { border-color: var(--tc, var(--accent)); background: color-mix(in srgb, var(--tc, var(--accent)) 18%, var(--paper-2)); }
+.src-tab.out { opacity: .6; }
+.src-topic-bar { margin: 0 0 10px; min-height: 22px; }
+.pl-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--tc); margin-right: 8px; vertical-align: 1px; }

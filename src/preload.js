@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld('api', {
   checkRoute: () => ipcRenderer.invoke('net:check-route'),
   endRun: () => ipcRenderer.invoke('net:end-run'),
 
-  planEdition: () => ipcRenderer.invoke('edition:plan'),
+  planEdition: (kind) => ipcRenderer.invoke('edition:plan', kind),
   saveEdition: (edition, consideredUrls) => ipcRenderer.invoke('edition:save', edition, consideredUrls),
   listEditions: () => ipcRenderer.invoke('edition:list'),
   loadEdition: (id) => ipcRenderer.invoke('edition:load', id),

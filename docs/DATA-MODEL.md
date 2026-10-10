@@ -1,6 +1,6 @@
 # Data model
 
-There is no database. The app keeps a few JSON files in the per-user data folder (`%APPDATA%\The Astro Gazette\` on Windows). The diagram shows what they hold and how the pieces relate.
+There is no database. The app keeps a few JSON files in the per-user data folder (`%APPDATA%\The Daily Orbit\` on Windows). The diagram shows what they hold and how the pieces relate.
 
 ```mermaid
 erDiagram
@@ -32,6 +32,8 @@ erDiagram
     int windowDays "1-30, default 7"
     int maxPerSource "default 15"
     int maxPages "8-30, default 24"
+    array topics "desks in the Everything paper"
+    array lastPick "desks chosen last time"
     string theme "night or day"
     string paperSize
     string readerSize
@@ -48,14 +50,15 @@ erDiagram
   }
   SOURCE {
     string id PK
+    string topic "desk"
     string name
     string url "feed address"
     bool enabled
-    bool astroOnly "keep astronomy items only"
+    bool topicOnly "keep on-topic items only"
     string urlMatch "optional link filter"
   }
   STATE {
-    int lastGeneratedAt "ms, end of the last edition"
+    object lastByKind "kind to end of its last edition"
     int editionCount
   }
   SEEN_URL {
@@ -69,12 +72,15 @@ erDiagram
     int since "window start"
     int until "window end"
     string mode "first, since-last or capped"
+    string kind "all, finance, finance+sports..."
+    array topics "desks in this paper"
     float gapDays
     int windowDays
   }
   ARTICLE {
     string id PK
     string sourceId FK
+    string topic "desk"
     string title
     string url
     string canon "normalised url"

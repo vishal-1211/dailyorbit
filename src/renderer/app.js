@@ -1,4 +1,4 @@
-/* The Astro Gazette — app controller: generation, the paper on the desk, the book reader. */
+/* The Daily Orbit — app controller: newsstand, generation, the paper on the desk, the book reader. */
 (function () {
   const AG = window.AG;
   const $ = (s) => document.querySelector(s);
@@ -38,14 +38,16 @@
   }
   function view(name) {
     $('#welcome').classList.toggle('hidden', name !== 'welcome');
-    $('#paperview').classList.toggle('hidden', name === 'welcome');
+    $('#paperview').classList.toggle('hidden', name === 'welcome' && !edition); // the newsstand floats over the paper once there is one
+    $('#welcome').classList.toggle('over', name === 'welcome' && !!edition);
     $('#paperview').classList.toggle('behind', name === 'reader'); // kept laid out (for resizing) but not shown under the reader
     $('#readerview').classList.toggle('hidden', name !== 'reader');
   }
 
+  const planText = (plan) => (plan.mode === 'first' ? `past ${plan.windowDays} days` : plan.mode === 'capped' ? `last ${plan.windowDays} days only` : `since ${fmtDay(plan.since)}`);
   async function refreshGenerateHint() {
-    const plan = await window.api.planEdition();
-    $('#gen-sub').textContent = plan.mode === 'first' ? `past ${plan.windowDays} days` : plan.mode === 'capped' ? `last ${plan.windowDays} days only` : `since ${fmtDay(plan.since)}`;
+    const plan = await window.api.planEdition(AG.editionKind(pickList()));
+    $('#gen-sub').textContent = `${AG.kindLabel(plan.kind)} · ${planText(plan)}`;
     return plan;
   }
 
@@ -70,6 +72,7 @@
   async function renderEdition(ed, { startLabel = null } = {}) {
     edition = ed;
     view('paper');
+    $('#brand-kind').textContent = ed.kind && ed.kind !== 'all' ? `· ${AG.kindLabel(ed.kind)}` : '';
     await document.fonts.ready;
     const stage = $('#stage');
     const g = geometry(stage, false, !!config.settings.paperFit);
@@ -256,31 +259,62 @@
     if (edition && reader.article) { const l = entry(reader.article.id); l.completion = Math.max(l.completion || 0, (last + 1) / n); saveLearning(); }
   }
 
-  // ------------------------------------------------------------------ welcome
-  function renderWelcome(plan) {
-    view('welcome');
-    const d = plan.windowDays;
-    $('#welcome-copy').textContent = `Press print and I’ll gather the free-to-read astronomy stories from the past ${d} days into a newspaper made just for you. Every new edition picks up where the last one left off — and if you’ve been away longer than ${d} days, you only get the last ${d}.`;
-    requestAnimationFrame(AG.paintStars);
+  // ------------------------------------------------------------------ newsstand
+  let pick = new Set(['all']);
+  const pickList = () => [...pick];
+  const greeting = () => { const h = new Date().getHours(); return h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
+  async function renderNewsstand() {
+    const plan = await window.api.planEdition(AG.editionKind(pickList()));
+    const last = plan.lastByKind || {}, on = (id) => config.sources.filter(s => s.enabled && (s.topic || 'astronomy') === id).length;
+    const inAll = new Set(config.settings.topics?.length ? config.settings.topics : AG.TOPICS.map(t => t.id));
+    const fav = [...AG.TOPICS].map(t => [t.id, B.topicAffinity(t.id)]).sort((x, y) => y[1] - x[1]).filter(x => x[1] > 0.04).slice(0, 2).map(x => x[0]);
+    $('#ns-eyebrow').textContent = `${greeting()}, Vishal · ${new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}`;
+    $('#ns-copy').textContent = `I gather free-to-read stories from the publishers you pick and print them as a paper made for you. Each kind of paper picks up where its last edition left off; away more than ${plan.windowDays} days, you only get the last ${plan.windowDays}.`;
+    $('#ns-all-orbit').innerHTML = AG.TOPICS.filter(t => inAll.has(t.id)).map((t, i, arr) => `<i style="--tc:${t.color};--a:${(360 / arr.length) * i}deg">${t.icon}</i>`).join('') + '<span class="orb"></span>';
+    $('#ns-all').classList.toggle('on', pick.has('all'));
+    $('#ns-all-sub').textContent = last.all ? `Your daily paper · new since ${fmtDay(last.all)}` : 'Your daily paper: a little of every topic, more of what you read';
+    $('#ns-grid').innerHTML = AG.TOPICS.map(t => {
+      const n = on(t.id), l = last[t.id];
+      return `<button class="ns-topic ${pick.has(t.id) ? 'on' : ''} ${n ? '' : 'empty'}" data-pick="${t.id}" style="--tc:${t.color}">
+        <span class="ns-icon">${t.icon}</span><b>${esc(t.name)}</b><small>${esc(t.tag)}</small>
+        <em>${n ? `${n} source${n === 1 ? '' : 's'}` : 'No sources on'}${l ? ` · since ${esc(fmtShort(l))}` : ''}</em>
+        ${fav.includes(t.id) ? '<i class="ns-fav">You read this most</i>' : ''}<span class="ns-check">✓</span></button>`;
+    }).join('');
+    $('#ns-pick').innerHTML = `<b>${esc(AG.kindLabel(plan.kind))}</b> · ${esc(planText(plan))}`;
+    $('#ns-close').classList.toggle('hidden', !edition);
+  }
+  async function openNewsstand() {
+    if (generating) return;
+    const saved = config.settings.lastPick; if (Array.isArray(saved) && saved.length) pick = new Set(saved);
+    await renderNewsstand(); view('welcome'); requestAnimationFrame(AG.paintStars);
+  }
+  function closeNewsstand() { if (edition) view('paper'); }
+  function togglePick(id) {
+    if (id === 'all') pick = new Set(['all']);
+    else { pick.delete('all'); pick.has(id) ? pick.delete(id) : pick.add(id); if (!pick.size) pick.add('all'); }
+    renderNewsstand();
   }
 
   // ------------------------------------------------------------------ generation
   const STATUS = { queued: 'Waiting', feed: 'Reading feed…', articles: 'Fetching stories…', done: 'Done', error: 'Unavailable', cancelled: 'Cancelled' };
   async function generate() {
     if (generating) return;
+    const topics = pickList(), kind = AG.editionKind(topics);
     generating = true; cancelFlag = false;
     $('#btn-generate').disabled = true;
     $('#press').classList.remove('hidden');
     try {
       config = await window.api.getConfig();
-      if (!config.sources.some(s => s.enabled)) { toast('No sources are switched on — open Sources to pick some.'); return; }
-      const plan = await window.api.planEdition();
-      $('#press-title').textContent = 'Printing your edition…';
+      const wantedTopics = kind === 'all' ? (config.settings.topics?.length ? config.settings.topics : AG.TOPICS.map(t => t.id)) : topics;
+      if (!config.sources.some(s => s.enabled && wantedTopics.includes(s.topic || 'astronomy'))) { toast(`No sources are switched on for ${AG.kindLabel(kind)} — open Sources to pick some.`, 5000); return; }
+      config.settings.lastPick = topics; config = await window.api.saveConfig(config);
+      const plan = await window.api.planEdition(kind);
+      $('#press-title').textContent = kind === 'all' ? 'Printing your daily paper…' : `Printing your ${AG.kindLabel(kind)} edition…`;
       $('#press-sub').textContent = plan.mode === 'since-last' ? `Stories since ${fmtDay(plan.since)}`
         : plan.mode === 'capped' ? `You’ve been away ${Math.round(plan.gapDays)} days — gathering just the last ${plan.windowDays}` : `Gathering the past ${plan.windowDays} days`;
       if (edition) B.learnFromLog(edition, logFor(edition), true); // the outgoing edition's final lessons
       const { edition: ed, considered, healed } = await AG.generateEdition({
-        plan, config, isCancelled: () => cancelFlag,
+        plan, config, topics, isCancelled: () => cancelFlag,
         onProgress: ({ stats, note }) => {
           if (note) $('#press-sub').textContent = note;
           const total = stats.length;
@@ -294,7 +328,8 @@
             if (s.status === 'articles') label = `${s.used + s.paywalled + s.failed} / ${s.found} stories`;
             if (s.status === 'done') { label = s.found ? `${s.used} stor${s.used === 1 ? 'y' : 'ies'}${s.paywalled ? ` · ${s.paywalled} paywalled` : ''}` : 'Nothing new'; cls = 'ok'; }
             if (s.status === 'error') { label = s.error; cls = 'bad'; }
-            return `<li><span>${esc(s.name)}</span><span class="st ${cls}">${esc(label)}</span></li>`;
+            const t = AG.topicById[s.topic];
+            return `<li><span>${t ? `<i class="pl-dot" style="--tc:${t.color}" title="${esc(t.name)}"></i>` : ''}${esc(s.name)}</span><span class="st ${cls}">${esc(label)}</span></li>`;
           }).join('');
         }
       });
@@ -330,7 +365,7 @@
     if (!menu.classList.contains('hidden')) { menu.classList.add('hidden'); return; }
     const list = await window.api.listEditions();
     menu.innerHTML = list.length
-      ? list.map(e => `<button class="menu-item ${edition && e.id === edition.id ? 'active' : ''}" data-edition="${esc(e.id)}"><span>No. ${e.number} · ${esc(fmtShort(e.since))} – ${esc(fmtShort(e.until))}</span><small>${e.count} stories</small></button>`).join('')
+      ? list.map(e => `<button class="menu-item ${edition && e.id === edition.id ? 'active' : ''}" data-edition="${esc(e.id)}"><span>No. ${e.number} · ${esc(AG.kindLabel(e.kind || 'all'))}</span><small>${esc(fmtShort(e.since))} – ${esc(fmtShort(e.until))} · ${e.count} stories</small></button>`).join('')
       : '<div class="menu-empty">No back issues yet.</div>';
     menu.classList.remove('hidden');
   }
@@ -392,8 +427,11 @@
     const applyGestures = () => { paper.book.gestures = reader.book.gestures = !!config.settings.turnGestures; };
     applyGestures(); AG._applyGestures = applyGestures;
 
-    $('#btn-generate').addEventListener('click', generate);
+    $('#btn-generate').addEventListener('click', openNewsstand);
     $('#welcome-generate').addEventListener('click', generate);
+    $('#ns-all').addEventListener('click', () => togglePick('all'));
+    $('#ns-grid').addEventListener('click', (e) => { const b = e.target.closest('[data-pick]'); if (b) togglePick(b.dataset.pick); });
+    $('#ns-close').addEventListener('click', closeNewsstand);
     $('#btn-sources').addEventListener('click', () => window.api.openSources());
     $('#welcome-sources').addEventListener('click', () => window.api.openSources());
     $('#btn-theme').addEventListener('click', async () => {
@@ -462,6 +500,7 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.target.closest('input, select, textarea')) return;
+      if (!$('#welcome').classList.contains('hidden')) { if (e.key === 'Escape') closeNewsstand(); else if (e.key === 'Enter') generate(); return; }
       const inReader = !$('#readerview').classList.contains('hidden');
       const inPaper = !inReader && !$('#paperview').classList.contains('hidden');
       const book = inReader ? reader.book : inPaper ? paper.book : null;
@@ -528,10 +567,11 @@
     applyTheme(config.settings.theme);
     wire();
     syncFitButtons();
-    const plan = await refreshGenerateHint();
+    const saved = config.settings.lastPick; if (Array.isArray(saved) && saved.length) pick = new Set(saved);
+    await refreshGenerateHint();
     const list = await window.api.listEditions();
     const latest = list[0] && await window.api.loadEdition(list[0].id);
-    if (latest) await renderEdition(latest); else renderWelcome(plan);
+    if (latest) await renderEdition(latest); else await openNewsstand();
   }
   boot();
 })();

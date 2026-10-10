@@ -221,7 +221,7 @@
     const ratios = await AG.preloadImages([a.image, ...[...AG.sanitizeHtml(a.html || '', a.url).querySelectorAll('img')].map(i => i.getAttribute('src'))]);
     const blocks = [];
     const hd = h('div', 'rd-head');
-    hd.innerHTML = `<div class="st-kicker">${esc(AG.SECTION_META[a.section]?.name || '')} <span>· ${esc(a.source)}</span></div>
+    hd.innerHTML = `<div class="st-kicker">${esc(AG.sectionName ? AG.sectionName(a.section) : (AG.SECTION_META[a.section]?.name || ''))} <span>· ${esc(a.source)}</span></div>
       <h1>${esc(a.title)}</h1>${a.excerpt ? `<p class="st-deck">${esc(a.excerpt)}</p>` : ''}
       <div class="st-by">${a.author ? `By <b>${esc(a.author)}</b> · ` : ''}${esc(fmt(a.published, { weekday: 'long', day: 'numeric', month: 'long' }))}</div>`;
     blocks.push(hd);
