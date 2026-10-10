@@ -1,34 +1,39 @@
 <p align="center">
-  <img src="docs/images/logo.png" width="128" alt="The Daily Orbit logo">
+  <img src="docs/images/logo.png" width="128" alt="The Daily Orbit logo: a golden planet with a ring">
 </p>
 
 <h1 align="center">The Daily Orbit</h1>
 
+<p align="center"><b>A newspaper that learns you, not one that sells you.</b></p>
+
 <p align="center">
-  Your personal daily newspaper for Windows.<br>
-  World, India, finance, tech, science, sport, the sky and more. Free to run, learns your taste, keeps your reading on your laptop.
+  Your own daily paper for Windows: World, India, Finance, Technology, Science, Sports, Astronomy, Health and Entertainment.<br>
+  Free. No account. No ads. It learns your taste on your laptop, and proves that nothing about you leaves it.
 </p>
 
 <p align="center">
   <img alt="version" src="https://img.shields.io/badge/version-1.2.0-e9b65a">
   <img alt="platform" src="https://img.shields.io/badge/platform-Windows-1b2547">
+  <img alt="cost" src="https://img.shields.io/badge/cost-free-22c55e">
+  <img alt="tracking" src="https://img.shields.io/badge/tracking-none-22c55e">
   <img alt="licence" src="https://img.shields.io/badge/licence-MIT-green">
 </p>
 
-![The newsstand](docs/images/newsstand.jpg)
+<p align="center"><i>Built in an afternoon at the Claude Build Day, Mumbai (10 Oct 2026), with Claude Code, on top of <a href="https://github.com/vishal-1211/AstroGazette">The Astro Gazette</a>.</i></p>
 
-Open the newsstand, choose **Everything** or any mix of desks, and press **Print my paper**. The app gathers the free-to-read stories from the publishers you pick, reads the full articles, and prints them as a newspaper made for you. It grew out of [The Astro Gazette](https://github.com/vishal-1211/AstroGazette), an astronomy-only paper, and keeps everything that one does.
+![The newsstand: choose Everything or any mix of nine desks](docs/images/newsstand.jpg)
 
-- **Nine desks**: World, India, Finance, Technology, Science, Sports, Astronomy, Health, Entertainment, each with its own sections (Finance → Markets, Economy & Policy, Companies, Your Money, Crypto; Sports → Cricket, Football, Tennis, Motorsport…).
-- **Everything or one topic**: the Everything paper gives every desk with news at least one page and more pages to what you read most. A topic paper (say, Finance) is that desk alone, with its own masthead.
-- **One brain across topics**: what you open, finish and rate anywhere teaches the same model. Read the money pages and Finance moves up in every paper.
-- **Only free stories**: paywalled articles are detected and skipped.
-- **A real paper**: front page, top stories, Page 3 people, topic pages, quiz, did-you-know, home-made memes, back page; plus great telescopes and your sky when Astronomy is in the paper.
-- **Proof, not promises**: a "What left your laptop" page lists every site contacted for each paper; a taste chart shows what it learned.
-- **Listen, compare, PDF**: stories read aloud with offline voices, the same story from every publisher side by side, the whole paper as a PDF, and a demo paper that works offline.
-- **Private**: the reading windows cannot reach the internet; publishers see a generic reader with no cookies. Optional Tor routing.
+## In 60 seconds
 
-## Why The Daily Orbit
+1. **Pick your paper.** *Everything*, or any mix of nine desks.
+2. **Press Print.** It reads about 70 free publishers and lays out a real newspaper in seconds: front page, sections, quiz, memes, back page.
+3. **Read, listen or save.** Turn the pages, press **▶ Briefing** to hear the top five stories, or save the whole paper as a PDF.
+4. **It learns.** Open what you like, tap 👍 or 👎. Tomorrow's paper is more yours.
+5. **Check the receipt.** The **You & your paper** page shows what it learned and **every site it contacted**, with proof that nothing about you was sent.
+
+No internet right now? Press **Demo paper (offline)** on the newsstand.
+
+## Why it wins your trust
 
 **A newspaper that learns you, not one that sells you.** Most news apps learn what you read so they can keep you scrolling and sell your attention. The Daily Orbit learns what you read so it can print you a better paper, and that knowledge never leaves your laptop.
 
@@ -57,12 +62,58 @@ Open the newsstand, choose **Everything** or any mix of desks, and press **Print
 - **Yours to shape.** About 70 free sources ready to go, any RSS feed or website can be added, nine desks you can mix in any combination, night and day paper, zoom, fit-to-width and continuous reading.
 - **Open source, MIT licence.** Read every line of what runs on your machine.
 
+## Made for everyone
+
+News should be easy to take in, whatever your eyes, your connection or your budget.
+
+- **Listen instead of read.** **▶ Briefing** reads the edition's top five stories aloud in about two minutes. **🔊 Listen** reads any full story. Both use only the voices built into your computer, so they work offline and never send the text anywhere. Helpful for people with low vision or blindness, people with dyslexia, and anyone cooking breakfast.
+- **Big, clear type.** Zoom up to 250%, larger or smaller type (A− / A+), and fit-to-width mode for one large page with big text. Night paper (light text on dark) and day paper (dark text on cream) for comfortable contrast.
+- **Keyboard first.** ← / → turn pages, ↑ / ↓ move around a page, Home / End jump to the start or end, Esc goes back. Pages never turn by accident: no swipes, no scroll-to-turn.
+- **Calm reading.** No autoplay, no pop-ups, no notifications, no infinite feed. Continuous reading mode shows a whole story as one scroll.
+- **Light on data and money.** Free forever, no subscription. Pictures are saved once when the paper is printed, back issues open offline, and a second paper the same day reuses stories it already downloaded. Good for slow or metered connections.
+- **Plain language about itself.** Every choice the paper makes can be explained: "Why this?" on any story, a taste chart, a model check, and one button to erase what it learned.
+
+Full screen-reader support and a high-contrast mode are next on the roadmap (see below).
+
+## Who it's for
+
+- **Busy professionals** who want the day's finance, tech and world news in one calm read, or as a two-minute audio briefing.
+- **Students** who want news across subjects, with a quiz and context, without a social feed.
+- **Older readers** who miss the shape of a real newspaper, and want big type and audio.
+- **People with low vision or reading difficulties**, who can listen to the paper read aloud offline.
+- **Privacy-conscious readers, journalists and researchers**, who don't want their reading tracked.
+- **Families and schools**, who want news without ads, trackers or endless scrolling.
+
+## By the numbers
+
 | | |
 |---|---|
-| ![Front page](docs/images/cover.jpg) | ![World and India pages](docs/images/spread.jpg) |
-| ![Finance edition](docs/images/finance-edition.jpg) | ![Fun and quiz page](docs/images/fun-and-quiz.jpg) |
+| Desks (topics) | 9, each with its own sections |
+| Free sources ready to use | about 70, 49 switched on |
+| From click to paper | about 22 s for a full paper from 49 publishers (benchmark on a slow network); a second paper the same day is near-instant |
+| Data sent about you | none: no account, cookies, IDs, location or reading history |
+| Cost | 0: no subscription, no paid AI, no ads |
+| Automated checks | learning, sky maths, layout at four screen sizes, page limits, privacy (identical requests whatever you read) and speed, on every change |
+
+
+
+## A look inside
+
+| | |
+|---|---|
+| ![Front page of an Everything paper](docs/images/cover.jpg) | ![World and India desk pages](docs/images/spread.jpg) |
+| ![A Finance-only edition with its own masthead and market backdrop](docs/images/finance-edition.jpg) | ![Fun and games: quiz, did-you-know and memes](docs/images/fun-and-quiz.jpg) |
+| ![You & your paper: taste chart and the list of every site contacted](docs/images/you-and-your-paper.jpg) | ![One story, every publisher: two versions side by side](docs/images/compare.jpg) |
 
 <sub>Screenshots come from the automated tests, which use made-up stories and placeholder pictures.</sub>
+
+## What makes it different
+
+- **Nine desks, one paper**: Everything gives every desk with news at least one page and more pages to what you read most. A topic paper (say, Finance) is that desk alone, with its own masthead and backdrop.
+- **One brain across topics**: what you open, finish and rate anywhere teaches the same on-device model. About one story in five is deliberately something different, so it never traps you in a bubble.
+- **Only free stories**: paywalled articles are detected and skipped.
+- **One story, every publisher**: when several outlets cover the same news, compare how each told it, side by side.
+- **A real paper**: Page 3 people, a quiz built from the week's stories, did-you-know facts, home-made memes, great telescopes and your own sky when Astronomy is in the paper.
 
 ## Upcoming extensions
 
@@ -77,7 +128,7 @@ The Daily Orbit is young. These are on the roadmap:
 - **Smarter writing on the page.** Today summaries are extracted from the article itself; a small on-device model could write short, neutral summaries and headlines.
 - **Source health and discovery.** Suggest good free sources for a new desk, and warn when a publisher starts paywalling.
 - **Shareable editions.** Send a page or a whole paper to a friend as a PDF or link, without revealing your taste.
-- **Accessibility.** Larger-type and high-contrast modes, full keyboard and screen-reader support.
+- **Accessibility, further.** Full screen-reader support (every page and control labelled), a high-contrast mode, adjustable reading voice and speed, and a dyslexia-friendly font option.
 
 ## Documentation
 
@@ -111,16 +162,6 @@ The app remembers when you last printed an edition.
 - **Away more than 7 days** → only the last 7 days. The paper tells you how long you were away.
 
 If nothing is new, you get "You're all caught up" and your window isn't used up. If every source is unreachable (no internet), nothing changes either. The 7 days can be changed in **Sources → Edition settings** (1–30).
-
-## How the edition window works
-
-Each kind of paper remembers when it was last printed: Everything, Finance, Finance + Sports, and so on.
-
-- **First edition of a kind** → stories from the past 7 days.
-- **Printed less than 7 days ago** → everything published since that edition.
-- **Away more than 7 days** → only the last 7 days.
-
-Stories already printed in any paper are not repeated. The 7 days can be changed in **Sources → Edition settings** (1–30).
 
 ## Sources
 
