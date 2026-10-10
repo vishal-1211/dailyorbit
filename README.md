@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-1.0.0-e9b65a">
+  <img alt="version" src="https://img.shields.io/badge/version-1.1.0-e9b65a">
   <img alt="platform" src="https://img.shields.io/badge/platform-Windows-1b2547">
   <img alt="licence" src="https://img.shields.io/badge/licence-MIT-green">
 </p>
@@ -143,7 +143,7 @@ Set your city (or coordinates) in **Sources → Your location**. Vadodara is the
 
 ## Where your data lives
 
-`%APPDATA%\The Daily Orbit\` — `config.json` (sources, settings, location), `state.json` (last edition time, stories already shown), `editions\` (back issues), `images\` (saved pictures), `learning.json` (reading log and everything learned). Delete `state.json` to start fresh with a 7-day edition.
+`%APPDATA%\The Daily Orbit\` — `config.json` (sources, settings, location), `state.json` (last edition time, stories already shown), `editions\` (back issues), `images\` (saved pictures), `learning.json` (reading log and everything learned), `article-cache.json` (stories read in the last 8 days, so a second paper is quick). Delete `state.json` to start fresh with a 7-day edition.
 
 ## Project layout
 

@@ -318,7 +318,20 @@ function bigFeed() {
   }
   return rss('Phys.org', items);
 }
+// Optional benchmark: every default feed gets 12 fresh stories (set global.__BENCH = true)
+const benchFeeds = {};
+function benchFeed(url) {
+  if (benchFeeds[url]) return benchFeeds[url];
+  const origin = new URL(url).origin, items = [];
+  for (let i = 0; i < 12; i++) {
+    const u = `${origin}/bench/${encodeURIComponent(url).slice(-12)}-${i}`, t = `Benchmark story ${i} from ${new URL(url).hostname}`;
+    pages[u] = page({ title: t, paras: P[Object.keys(P)[i % Object.keys(P).length]], image: img(['nebula', 'galaxy', 'planet', 'moon'][i % 4]), author: 'Staff', site: 'Bench' });
+    items.push(rssItem({ title: t, url: u, t: now - (i + 1) * 3 * H, desc: `${t}… <a href="${u}">Continue reading</a>`, image: img(['nebula', 'galaxy', 'planet', 'moon'][i % 4]) }));
+  }
+  return (benchFeeds[url] = rss('Bench', items));
+}
 module.exports = function fetchText(url) {
+  if (global.__BENCH && !feeds[url] && !pages[url] && /feed|rss|xml|atom/i.test(url) && !/celestrak|jpl/.test(url)) return { ok: true, status: 200, text: benchFeed(url), finalUrl: url, contentType: 'application/rss+xml' };
   if (global.__BIG && url.includes('phys.org/rss-feed')) return { ok: true, status: 200, text: bigFeed(), finalUrl: url, contentType: 'application/rss+xml' };
   if (!global.__BIG && url.includes('phys.org')) return { ok: false, status: 403, error: 'HTTP 403', text: '' };
   const text = feeds[url] || pages[url];

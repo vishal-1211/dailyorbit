@@ -31,7 +31,7 @@ npm install --no-save playwright
 npx playwright install chromium
 ```
 
-or set `PLAYWRIGHT_PATH` and `CHROMIUM_PATH` to existing copies. It replaces `window.api` with a fake that serves feeds from `test/fixtures.js`, prints several editions, reads them like a user and checks layout, learning and privacy. Screenshots go to `test/shots/` (not committed). Set `NO_MODEL=1` to test without the pre-trained model stand-in.
+or set `PLAYWRIGHT_PATH` and `CHROMIUM_PATH` to existing copies. It replaces `window.api` with a fake that serves feeds from `test/fixtures.js`, prints several editions, reads them like a user and checks layout, learning and privacy. Screenshots go to `test/shots/` (not committed). Set `NO_MODEL=1` to test without the pre-trained model stand-in, `LATENCY=<ms>` to change the simulated network delay, and `BENCH=<ms>` to time a full-size Everything paper (every default feed with 12 stories) at that delay per request.
 
 What the tests cannot cover: real Electron behaviour (private session, `gzimg://`, Tor), the real language model, and live publisher pages. Check those by hand on Windows.
 

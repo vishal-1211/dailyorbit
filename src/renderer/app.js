@@ -72,6 +72,7 @@
   async function renderEdition(ed, { startLabel = null } = {}) {
     edition = ed;
     view('paper');
+    AG.Backdrop?.setTopics(ed.topics && ed.topics.length ? ed.topics : ['astronomy']);
     $('#brand-kind').textContent = ed.kind && ed.kind !== 'all' ? `· ${AG.kindLabel(ed.kind)}` : '';
     await document.fonts.ready;
     const stage = $('#stage');
@@ -280,6 +281,7 @@
         <em>${n ? `${n} source${n === 1 ? '' : 's'}` : 'No sources on'}${l ? ` · since ${esc(fmtShort(l))}` : ''}</em>
         ${fav.includes(t.id) ? '<i class="ns-fav">You read this most</i>' : ''}<span class="ns-check">✓</span></button>`;
     }).join('');
+    AG.Backdrop?.setTopics(pick.has('all') ? [...inAll] : [...pick]);
     $('#ns-pick').innerHTML = `<b>${esc(AG.kindLabel(plan.kind))}</b> · ${esc(planText(plan))}`;
     $('#ns-close').classList.toggle('hidden', !edition);
   }

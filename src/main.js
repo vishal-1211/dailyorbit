@@ -26,6 +26,8 @@ const EDITIONS_DIR = () => path.join(DATA(), 'editions');
 const IMAGES_DIR = () => path.join(DATA(), 'images');
 const LEARNING_FILE = () => path.join(DATA(), 'learning.json'); // the reading log and everything learned from it; never leaves this folder
 const MAX_EDITIONS = 30;
+const ARTICLE_CACHE_FILE = () => path.join(DATA(), 'article-cache.json');
+const ARTICLE_CACHE_DAYS = 8, ARTICLE_CACHE_MAX = 900;
 
 const DEFAULT_SETTINGS = {
   windowDays: 7, maxPerSource: 10,
@@ -255,13 +257,15 @@ const EXT = { 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'imag
 const MIME = Object.fromEntries(Object.entries(EXT).map(([m, e]) => [e, m]));
 const hashName = (u) => crypto.createHash('sha1').update(u).digest('hex').slice(0, 24);
 
+let imgIndex = null; // file names of saved pictures, by hash (read once, not per picture)
 async function cacheImage(url) {
   const base = hashName(url);
   const dir = IMAGES_DIR();
-  const existing = fs.existsSync(dir) && fs.readdirSync(dir).find(f => f.startsWith(base + '.'));
+  if (!imgIndex) { imgIndex = new Map(); if (fs.existsSync(dir)) for (const f of fs.readdirSync(dir)) imgIndex.set(f.split('.')[0], f); }
+  const existing = imgIndex.get(base);
   if (existing) return `gzimg://img/${existing}`;
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 30000);
+  const timer = setTimeout(() => ctrl.abort(), 10000);
   try {
     const res = await sesFetch(url, { signal: ctrl.signal, redirect: 'follow', headers: { 'Accept': 'image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8' } });
     const type = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
@@ -270,7 +274,7 @@ async function cacheImage(url) {
     if (buf.length < 200 || buf.length > MAX_IMAGE_BYTES) return null;
     fs.mkdirSync(dir, { recursive: true });
     const name = `${base}.${EXT[type]}`;
-    fs.writeFileSync(path.join(dir, name), buf);
+    fs.writeFileSync(path.join(dir, name), buf); if (imgIndex) imgIndex.set(base, name);
     return `gzimg://img/${name}`;
   } catch { return null; } finally { clearTimeout(timer); }
 }
@@ -286,18 +290,48 @@ const SRC_ATTR = /\ssrc="([^"]*)"/i;
 const unescapeAttr = (s) => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 
 /** Download every image of an edition and rewrite references to the local cache. */
-async function localizeEdition(ed, maxImages = 300) {
+// ---------------------------------------------------------------------------
+// Article cache: stories already downloaded and read out of their pages, kept on this laptop for
+// a week, so a second paper (Finance after Everything, a reprint…) doesn't fetch them again.
+// ---------------------------------------------------------------------------
+let articleCache = null;
+function loadArticleCache() {
+  if (!articleCache) {
+    articleCache = readJSON(ARTICLE_CACHE_FILE(), {});
+    const cut = Date.now() - ARTICLE_CACHE_DAYS * DAY;
+    for (const [k, v] of Object.entries(articleCache)) if (!v || v.t < cut) delete articleCache[k];
+  }
+  return articleCache;
+}
+function articleCacheGet(urls) {
+  const c = loadArticleCache(), out = {};
+  for (const u of urls) if (c[u]) out[u] = c[u];
+  return out;
+}
+function articleCachePut(entries) {
+  const c = loadArticleCache(), now = Date.now();
+  for (const e of entries) {
+    if (!e || typeof e.url !== 'string' || e.url.length > 2000) continue;
+    if (e.paywalled) c[e.url] = { t: now, paywalled: true };
+    else if (e.art && typeof e.art.html === 'string' && e.art.html.length < 400000) c[e.url] = { t: now, art: { html: e.art.html, words: Number(e.art.words) || 0, image: String(e.art.image || ''), excerpt: String(e.art.excerpt || '').slice(0, 2000), byline: String(e.art.byline || '').slice(0, 200) } };
+  }
+  const keys = Object.keys(c);
+  if (keys.length > ARTICLE_CACHE_MAX) keys.sort((a, b) => c[a].t - c[b].t).slice(0, keys.length - ARTICLE_CACHE_MAX).forEach(k => delete c[k]);
+  writeJSON(ARTICLE_CACHE_FILE(), c);
+}
+
+async function localizeEdition(ed, maxImages = 160) {
   const want = [];
   for (const a of ed.articles || []) if (/^https?:/i.test(a.image || '')) want.push(a.image); // lead images first
   for (const a of ed.articles || []) {
     let n = 0;
     for (const tag of String(a.html || '').match(IMG_TAG) || []) {
-      const m = tag.match(SRC_ATTR); if (m && /^https?:/i.test(m[1]) && n++ < 8) want.push(unescapeAttr(m[1]));
+      const m = tag.match(SRC_ATTR); if (m && /^https?:/i.test(m[1]) && n++ < 3) want.push(unescapeAttr(m[1]));
     }
   }
   const unique = [...new Set(want)].slice(0, maxImages);
   const map = new Map();
-  const results = await pool(unique, 6, cacheImage);
+  const results = await pool(unique, 16, cacheImage);
   unique.forEach((u, i) => { if (results[i]) map.set(u, results[i]); });
   for (const a of ed.articles || []) {
     if (/^https?:/i.test(a.image || '')) a.image = map.get(a.image) || '';
@@ -322,6 +356,7 @@ function pruneImages() {
       for (const m of txt.matchAll(/gzimg:\/\/img\/([\w.]+)/g)) keep.add(m[1]);
     }
     for (const f of fs.readdirSync(IMAGES_DIR())) if (!keep.has(f)) fs.unlinkSync(path.join(IMAGES_DIR(), f));
+    imgIndex = null;
   } catch { /* nothing to prune */ }
 }
 
@@ -361,7 +396,9 @@ function registerIpc() {
     return saved;
   });
 
-  ipcMain.handle('net:fetch', (_e, url) => fetchText(String(url)));
+  ipcMain.handle('net:fetch', (_e, url, ms) => fetchText(String(url), Math.max(4000, Math.min(25000, Number(ms) || 25000))));
+  ipcMain.handle('cache:articles-get', (_e, urls) => articleCacheGet(Array.isArray(urls) ? urls.map(String) : []));
+  ipcMain.handle('cache:articles-put', (_e, entries) => articleCachePut(Array.isArray(entries) ? entries : []));
   ipcMain.handle('net:check-route', () => checkRoute());
   ipcMain.handle('net:end-run', async () => {
     // Forget anything a publisher may have left in the private session during this print run.

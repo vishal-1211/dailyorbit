@@ -2,6 +2,18 @@
 
 Notable changes to The Daily Orbit. Versions follow [semantic versioning](https://semver.org/). Versions before 1.0.0 were released as The Astro Gazette (astronomy only) and are kept below for history.
 
+## [1.1.0] — 2026-10-10
+
+### Changed
+- **Printing is much faster.** An Everything paper reads at most 5 stories per publisher and 14 per desk (40 for a single-desk paper), chosen newest-first by date only, so the requests still say nothing about your taste. Feeds load 24 at a time and stories 20 at a time (at most 3 per site), with shorter time-outs (15 s feeds, 12 s stories, 10 s pictures) so one slow site no longer holds up the paper. Orbit data loads alongside the news. At most 3 pictures per story and 160 per paper are saved, 16 at a time. Benchmark (49 publishers, 1.5 s per request): about 22 s from click to paper, against several minutes before.
+- **Local article cache:** stories already read out of their pages are kept on this laptop for 8 days (`article-cache.json`), so a second paper the same day (say Finance after Everything) reuses them instead of downloading them again.
+- **Backdrops per desk:** markets, globes, rangoli, circuits, molecules, pitch and track, heartbeat, film strips; galaxies only when Astronomy is in the paper. The backdrop follows the paper on the desk and the desks picked on the newsstand.
+- Desks with only one or two stories share "Around the desks" pages instead of leaving near-empty pages.
+
+### Fixed
+- Publisher logos shown as story pictures, cropped to a few letters (e.g. ThePrint). Pictures reused across one publisher's stories, addresses that say logo/placeholder/default, tiny pictures and banners are no longer used as photos.
+- The launcher reuses the Electron runtime already downloaded for The Astro Gazette, then tries a download mirror, when GitHub downloads are blocked.
+
 ## [1.0.0] — 2026-10-10 · The Daily Orbit
 
 Built at the Claude Build Day in Mumbai.

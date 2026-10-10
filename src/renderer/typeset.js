@@ -135,12 +135,13 @@
   }
 
   // ------------------------------------------------------------------ images
+  AG._photoOk = new Set(); // pictures fit to be a story's photo: big enough, not a banner or a sliver (logos usually fail)
   AG.preloadImages = function (urls, timeout = 6000) {
     const map = new Map();
     return Promise.all([...new Set(urls.filter(Boolean))].map(u => new Promise(res => {
       const img = new Image(); img.referrerPolicy = 'no-referrer';
       const t = setTimeout(() => res(), timeout);
-      img.onload = () => { clearTimeout(t); if (img.naturalWidth > 60) map.set(u, img.naturalWidth / img.naturalHeight); res(); };
+      img.onload = () => { clearTimeout(t); const w = img.naturalWidth, r = w / (img.naturalHeight || 1); if (w > 60) map.set(u, r); if (w >= 240 && r <= 2.4 && r >= 0.42) AG._photoOk.add(u); res(); };
       img.onerror = () => { clearTimeout(t); res(); };
       img.src = u;
     }))).then(() => map);
@@ -225,7 +226,7 @@
       <h1>${esc(a.title)}</h1>${a.excerpt ? `<p class="st-deck">${esc(a.excerpt)}</p>` : ''}
       <div class="st-by">${a.author ? `By <b>${esc(a.author)}</b> · ` : ''}${esc(fmt(a.published, { weekday: 'long', day: 'numeric', month: 'long' }))}</div>`;
     blocks.push(hd);
-    if (a.image && ratios.has(a.image)) blocks.push(figure(a.image, ratios.get(a.image), a.source, 'hero'));
+    if (a.image && ratios.has(a.image) && AG._photoOk.has(a.image)) blocks.push(figure(a.image, ratios.get(a.image), a.source, 'hero'));
     if (a.partial) blocks.push(h('div', 'rd-note', `Only a summary was available. <a data-open-url="${esc(a.url)}">Read the full story at ${esc(a.source)} ↗</a>`));
     const body = bodyBlocks(a, ratios, { maxFigs: 20, reader: true });
     // Don't repeat the deck if it's just the first paragraph

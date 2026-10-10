@@ -49,7 +49,7 @@
 
     const ratios = await AG.preloadImages(ed.articles.map(a => a.image));
     const all = ed.articles.map(a => B.enrich(a));
-    const img = (a) => (ratios.has(a.image) ? a.image : '');
+    const img = (a) => (ratios.has(a.image) && AG._photoOk.has(a.image) ? a.image : '');
     const main = all.filter(a => !a.dup);
     if (!ed.extras) ed.extras = AG.Extras.build(ed, main, { illum: AG.moonPhase(new Date(ed.until)).illum });
     const X = ed.extras, byId = new Map(all.map(a => [a.id, a]));
@@ -174,7 +174,7 @@
 
     // ---------------------------------------------------------------- sections / topics
     /** Lay `list` out over at most `maxN` pages. Returns how many stories were placed. */
-    const fillPages = (list, maxN, { key = 'sections', topic = null } = {}) => {
+    const fillPages = (list, maxN, { key = 'sections', topic = null, mix = false } = {}) => {
       let i = 0, pageNo = 0;
       while (i < list.length && pageNo < maxN) {
         if (pageNo > 0 && list.length - i <= 2) break; // don't open a nearly empty page: these go to "In brief"
@@ -184,8 +184,8 @@
           if (used + cost > SLOTS) break;
           chunk.push([a, feature]); used += cost; i++;
         }
-        const names = [...new Set(chunk.map(([a]) => SEC[a.section]))];
-        const title = topic ? `${topic.icon} ${topic.name}` : names.slice(0, 3).join(' · ');
+        const names = mix ? [...new Set(chunk.map(([a]) => topicOf(a).name))] : [...new Set(chunk.map(([a]) => SEC[a.section]))];
+        const title = topic ? (mix ? topic.name : `${topic.icon} ${topic.name}`) : names.slice(0, 3).join(' · ');
         const b = newPage(key, topic ? `${topic.name} · ${names.join(', ')}` : names.join(' · '), topic ? topic.name : (names.length > 2 ? 'Sections' : names.join(' & ')), topic ? 'topic-page' : '');
         if (topic) { b.parentElement.style.setProperty('--tc', topic.color); b.parentElement.dataset.topic = topic.id; }
         b.innerHTML = `${band(title, topic ? names.join(' · ') : '')}<div class="sec-grid rows${Math.ceil(used / 2)} of${SLOTS / 2}">${chunk.map(([a, f]) => card(a, f ? 'wide' : (img(a) ? 'side' : 'text'))).join('')}</div>`;
@@ -201,7 +201,10 @@
       } else {
         // Page budget per topic: one page for every topic with news first, then the rest by
         // (how much the reader reads the topic) × (how much news it has).
-        const groups = topicRank.map(id => ({ t: AG.topicById[id], list: sectionStories.filter(a => topicOf(a).id === id) })).filter(g => g.t && g.list.length);
+        const all = topicRank.map(id => ({ t: AG.topicById[id], list: sectionStories.filter(a => topicOf(a).id === id) })).filter(g => g.t && g.list.length);
+        // Desks with only a story or two share pages ("Around the desks") instead of a near-empty page each.
+        const small = all.filter(g => g.list.length <= 2), groups = all.filter(g => g.list.length > 2);
+        if (small.length) groups.push({ t: { id: 'mix', name: 'Around the desks', icon: '◉', color: 'var(--pg-accent)' }, list: small.flatMap(g => g.list), mix: true });
         const weight = (g) => Math.max(0.35, Math.min(3, 1 + 2.5 * B.topicAffinity(g.t.id)));
         const cap = (g) => Math.max(1, Math.ceil(g.list.length / 3));
         const count = new Map(); let left = budget;
@@ -212,7 +215,7 @@
           if (!best) break; count.set(best, count.get(best) + 1); left--;
         }
         const rest = [];
-        for (const g of groups) { const n = count.get(g) ? fillPages(g.list, count.get(g), { key: `t-${g.t.id}`, topic: g.t }) : 0; rest.push(...g.list.slice(n)); }
+        for (const g of groups) { const n = count.get(g) ? fillPages(g.list, count.get(g), { key: `t-${g.t.id}`, topic: g.t, mix: !!g.mix }) : 0; rest.push(...g.list.slice(n)); }
         briefs = [...rest, ...briefs];
       }
     }

@@ -6,7 +6,9 @@ contextBridge.exposeInMainWorld('api', {
   resetSources: () => ipcRenderer.invoke('config:reset-sources'),
   onConfigChanged: (fn) => ipcRenderer.on('config:changed', (_e, cfg) => fn(cfg)),
 
-  fetchText: (url) => ipcRenderer.invoke('net:fetch', url),
+  fetchText: (url, timeoutMs) => ipcRenderer.invoke('net:fetch', url, timeoutMs),
+  articleCacheGet: (urls) => ipcRenderer.invoke('cache:articles-get', urls),
+  articleCachePut: (entries) => ipcRenderer.invoke('cache:articles-put', entries),
   checkRoute: () => ipcRenderer.invoke('net:check-route'),
   endRun: () => ipcRenderer.invoke('net:end-run'),
 
