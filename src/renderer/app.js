@@ -251,6 +251,24 @@
   // ------------------------------------------------------------------ listen (the computer's own voices, offline)
   let speaking = false;
   function stopListening() { try { speechSynthesis.cancel(); } catch { /* none */ } speaking = false; const b = $('#r-listen'); if (b) b.querySelector('span').textContent = '🔊 Listen'; }
+  /** Speak a list of texts with this computer's own voices only. Returns false if none are available. */
+  function speak(texts, onDone) {
+    const voices = speechSynthesis.getVoices(), local = voices.filter(v => v.localService), en = (l) => l.filter(v => /^en/i.test(v.lang));
+    const voice = en(local).find(v => /IN/.test(v.lang)) || en(local)[0] || local[0] || null;
+    if (!voice && voices.length) { toast('Only online voices are available, so I won’t read aloud (that would send the text out).', 5000); return false; }
+    const chunks = []; for (const text of texts) { let cur = ''; for (const p of text.match(/[^.!?]+[.!?]+["”’]?\s*|.+$/g) || [text]) { if ((cur + p).length > 220) { chunks.push(cur); cur = ''; } cur += p; } if (cur) chunks.push(cur); }
+    chunks.forEach((c, i) => { const u = new SpeechSynthesisUtterance(c); if (voice) u.voice = voice; u.rate = 1.02; if (i === chunks.length - 1) u.onend = onDone; speechSynthesis.speak(u); });
+    return true;
+  }
+  let briefing = false;
+  function brief() {
+    if (briefing) { speechSynthesis.cancel(); briefing = false; $('#p-brief').textContent = '▶ Briefing'; return; }
+    if (!edition || !window.speechSynthesis) return;
+    const top = edition.articles.filter(a => !a.dup).slice(0, 5), h = new Date().getHours();
+    const intro = `${h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'}, Vishal. Here is your Daily Orbit briefing: ${top.length} stories.`;
+    const lines = top.map((a, i) => `${['First', 'Next', 'Then', 'Also', 'And finally'][i]}, from ${a.source}: ${a.title}. ${(a.summary || a.excerpt || '').split(/(?<=[.!?])\s/).slice(0, 2).join(' ')}`);
+    if (speak([intro, ...lines, 'That’s your briefing. The full stories are in the paper.'], () => { briefing = false; $('#p-brief').textContent = '▶ Briefing'; })) { briefing = true; $('#p-brief').textContent = '⏹ Stop'; }
+  }
   function listen() {
     if (speaking) return stopListening();
     const a = reader.article; if (!a || !window.speechSynthesis) return toast('This computer has no speech voices installed.');
@@ -516,6 +534,7 @@
     $('#r-others').addEventListener('click', showOthers);
     $('#r-listen').addEventListener('click', listen);
     $('#p-pdf').addEventListener('click', savePdf);
+    $('#p-brief').addEventListener('click', brief);
     $('#ns-demo').addEventListener('click', openDemo);
     $('#why-body').addEventListener('click', (e) => { const c = e.target.closest('[data-open]'); if (c) { $('#why').classList.add('hidden'); openStory(c.dataset.open); } });
     $('#why-close').addEventListener('click', () => $('#why').classList.add('hidden'));

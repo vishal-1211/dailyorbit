@@ -101,7 +101,7 @@ const audit = (page) => page.evaluate(() => {
   console.log(`Edition 1: ${ed1.articles.length} stories → ${a1.pages} pages [${a1.keys.join(', ')}], ${a1.stories} stories on the pages`);
   assert(a1.pages <= 24, 'never more than the page limit'); assert.deepEqual(a1.overflow, [], 'nothing cut off: ' + a1.overflow.join(' | '));
   for (const k of ['front', 'top', 'people', 'instruments', 'fun', 'sky', 'you', 'back']) assert(a1.keys.includes(k), 'missing page ' + k);
-  if (process.env.DUMP_DEMO) { const d = JSON.parse(JSON.stringify(ed1)); d.demo = true; fs.mkdirSync(path.join(__dirname, '..', 'src', 'demo'), { recursive: true }); fs.writeFileSync(path.join(__dirname, '..', 'src', 'demo', 'demo-edition.json'), JSON.stringify(d)); console.log('  demo paper written'); }
+  if (false) { const d = JSON.parse(JSON.stringify(ed1)); d.demo = true; fs.mkdirSync(path.join(__dirname, '..', 'src', 'demo'), { recursive: true }); fs.writeFileSync(path.join(__dirname, '..', 'src', 'demo', 'demo-edition.json'), JSON.stringify(d)); console.log('  demo paper written'); }
   const healed = store.config.sources.find(s => s.id === 'skytel').url;
   assert.equal(healed, 'https://skyandtelescope.org/feed/', 'moved feed found and saved automatically'); console.log('✓ self-repair: a moved feed was found from the publisher’s home page');
   assert(ed1.sky.tle && ed1.sky.cad, 'sky data stored with the edition');
@@ -241,6 +241,11 @@ const audit = (page) => page.evaluate(() => {
   const aG = await audit(page), order = aG.keys.filter(k => k.startsWith('t-'));
   const edG = Object.values(store.editions).sort((a, b) => a.number - b.number).pop(), firstOf = (t) => edG.articles.findIndex(a => a.topic === t);
   assert(firstOf('finance') >= 0 && firstOf('finance') < firstOf('sports'), `Finance ranks above Sports: ${firstOf('finance')} vs ${firstOf('sports')}`);
+  { const edGc = Object.values(store.editions).sort((a, b) => a.number - b.number).pop(), lead = edGc.articles.find(a => (a.alsoBy || []).length);
+    assert(lead, 'a story told by two publishers is merged'); await open(lead.id); assert(await page.isVisible('#r-others'), 'Compare button shows for a shared story');
+    await page.click('#r-others'); await settle(page, 400); assert.equal(await page.$$eval('#why-body .cmp', x => x.length), 1 + lead.alsoBy.length); await shot(page, '24-compare');
+    await page.click('#why-close'); await page.keyboard.press('Escape'); await settle(page, 400); console.log(`✓ compare: “${lead.title.slice(0, 40)}…” side by side from ${1 + lead.alsoBy.length} publishers`);
+    if (process.env.DUMP_DEMO) { const d = JSON.parse(JSON.stringify(edGc)); d.demo = true; fs.mkdirSync(path.join(__dirname, '..', 'src', 'demo'), { recursive: true }); fs.writeFileSync(path.join(__dirname, '..', 'src', 'demo', 'demo-edition.json'), JSON.stringify(d)); console.log('  demo paper written'); } }
   console.log(`✓ the general paper follows your taste: first Finance story at #${firstOf('finance') + 1}, first Sports story at #${firstOf('sports') + 1}; topic pages ${order.map(k => k.slice(2)).join(' → ')}`);
 
   // ---------- narrow window (single page) and a very busy week (60+ stories)

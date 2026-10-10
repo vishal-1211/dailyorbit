@@ -269,6 +269,13 @@ const S2 = {
       'Observers from regional bodies said voting was largely peaceful and well organised.',
       'The new parliament must choose a prime minister within 30 days of its first sitting.']]
   ]],
+  'https://theprint.in/category/india/feed/': ['ThePrint', 'https://theprint.in/india', [
+    ['metro-line-print', 'Ahmedabad metro’s new line opens and cuts commute times by half', '', [
+      'Ahmedabad’s new 21-kilometre metro line opened on Friday, connecting the old city with GIFT City and the airport, and early riders reported journeys taking half as long.',
+      'The Gujarat Metro Rail Corporation expects around 1.5 lakh daily riders within a year, with fares between 5 and 40 rupees.',
+      'Urban planners said the line’s success will depend on feeder buses and parking at the outer stations.',
+      'The route is the third phase of the Ahmedabad–Gandhinagar project, which began construction in 2019.']]
+  ]],
   'https://feeds.feedburner.com/ndtvnews-india-news': ['NDTV', 'https://www.ndtv.com/india-news', [
     ['metro-line', 'Ahmedabad’s new metro line opens, cutting commute times by half', 'rocket', [
       'A new 21-kilometre metro line opened in Ahmedabad on Friday, linking the city centre with GIFT City and the airport.',

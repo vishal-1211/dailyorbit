@@ -279,7 +279,7 @@
     // ---------------------------------------------------------------- you & your paper: taste chart + privacy receipt
     {
       const b = newPage('you', 'You & your paper', 'You', 'you-page');
-      const now = Object.fromEntries(AG.TOPICS.map(t => [t.id, B.topicAffinity(t.id)])), then = ed.taste || {};
+      const live = B.explain().lessons >= 3 || !ed.demo, now = live ? Object.fromEntries(AG.TOPICS.map(t => [t.id, B.topicAffinity(t.id)])) : (ed.taste || {}), then = live ? (ed.taste || {}) : {};
       const max = Math.max(0.15, ...AG.TOPICS.map(t => Math.abs(now[t.id])), ...Object.values(then).map(Math.abs));
       const bar = (v) => `${Math.min(50, (Math.abs(v) / max) * 50)}%`;
       const rows = AG.TOPICS.map(t => { const v = now[t.id] || 0, w = then[t.id] || 0;

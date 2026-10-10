@@ -9,7 +9,8 @@ Notable changes to The Daily Orbit. Versions follow [semantic versioning](https:
 - **Listen**: reads a story aloud with the computer's own voices only (refuses online voices, so no text leaves the laptop).
 - **PDF**: saves the whole paper, one page per sheet.
 - **Compare**: for a story several publishers covered, shows how each one told it, side by side.
-- **Demo paper (offline)** on the newsstand: a bundled sample edition for when there is no internet.
+- **Demo paper (offline)** on the newsstand: a bundled sample edition for when there is no internet, with a learned taste to show.
+- **▶ Briefing**: one click reads the edition's top five stories aloud in about two minutes (offline voices only).
 
 ## [1.1.0] — 2026-10-10
 
