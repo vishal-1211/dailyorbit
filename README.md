@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-1.1.0-e9b65a">
+  <img alt="version" src="https://img.shields.io/badge/version-1.2.0-e9b65a">
   <img alt="platform" src="https://img.shields.io/badge/platform-Windows-1b2547">
   <img alt="licence" src="https://img.shields.io/badge/licence-MIT-green">
 </p>
@@ -24,6 +24,8 @@ Open the newsstand, choose **Everything** or any mix of desks, and press **Print
 - **One brain across topics**: what you open, finish and rate anywhere teaches the same model. Read the money pages and Finance moves up in every paper.
 - **Only free stories**: paywalled articles are detected and skipped.
 - **A real paper**: front page, top stories, Page 3 people, topic pages, quiz, did-you-know, home-made memes, back page; plus great telescopes and your sky when Astronomy is in the paper.
+- **Proof, not promises**: a "What left your laptop" page lists every site contacted for each paper; a taste chart shows what it learned.
+- **Listen, compare, PDF**: stories read aloud with offline voices, the same story from every publisher side by side, the whole paper as a PDF, and a demo paper that works offline.
 - **Private**: the reading windows cannot reach the internet; publishers see a generic reader with no cookies. Optional Tor routing.
 
 | | |

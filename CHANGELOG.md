@@ -2,6 +2,15 @@
 
 Notable changes to The Daily Orbit. Versions follow [semantic versioning](https://semver.org/). Versions before 1.0.0 were released as The Astro Gazette (astronomy only) and are kept below for history.
 
+## [1.2.0] — 2026-10-10 (Build Day)
+
+### Added
+- **You & your paper** page: a taste chart per desk (now, and where each desk stood when the paper was printed) and a **"What left your laptop"** receipt listing every site contacted, with proof that no cookies, IDs, location or reading history were sent.
+- **Listen**: reads a story aloud with the computer's own voices only (refuses online voices, so no text leaves the laptop).
+- **PDF**: saves the whole paper, one page per sheet.
+- **Compare**: for a story several publishers covered, shows how each one told it, side by side.
+- **Demo paper (offline)** on the newsstand: a bundled sample edition for when there is no internet.
+
 ## [1.1.0] — 2026-10-10
 
 ### Changed

@@ -63,6 +63,7 @@
       <div class="ns-grid" id="ns-grid"></div>
       <footer class="ns-foot">
         <button class="link-btn" id="welcome-sources">Manage sources</button>
+        <button class="link-btn" id="ns-demo" title="A sample paper that works without internet">Demo paper (offline)</button>
         <span class="ns-pick" id="ns-pick"></span>
         <button class="big-btn" id="welcome-generate">Print my paper</button>
       </footer>
@@ -84,6 +85,7 @@
         <button class="db-arrow" id="p-next" title="Next page (→)"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
       </div>
       <div class="db-right">
+<button class="db-btn" id="p-pdf" title="Save the whole paper as a PDF">PDF</button>
 <button class="db-btn icon" id="p-fit" title="Fit to width — bigger page, scroll to read (W)"><svg viewBox="0 0 24 24"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4M8 12h8M8 12l2-2M8 12l2 2M16 12l-2-2M16 12l-2 2"/></svg></button>
         <div class="zoomctl" title="Zoom (Ctrl + scroll, or + / −)"><button id="p-zout" aria-label="Zoom out">−</button><button id="p-zoom" class="zval" title="Reset zoom (0)">100%</button><button id="p-zin" aria-label="Zoom in">+</button></div>
         <button class="db-btn" id="p-smaller" title="Smaller type">A<small>−</small></button>
@@ -100,6 +102,8 @@
       <button class="tb-btn" id="r-why" title="Why did the paper pick this story?"><span>Why this?</span></button>
       <button class="tb-btn thumb" id="r-up" title="More like this">👍</button>
       <button class="tb-btn thumb" id="r-down" title="Fewer like this">👎</button>
+      <button class="tb-btn" id="r-others" title="The same story from other publishers"><span>Compare</span></button>
+      <button class="tb-btn" id="r-listen" title="Read this story aloud (uses your computer’s own voices, offline)"><span>🔊 Listen</span></button>
       <button class="tb-btn" id="r-original"><span>Original</span><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
     </div>
     <div class="stage" id="rstage"></div>
@@ -127,6 +131,7 @@
 
   <!-- Off-screen typesetting room -->
   <div id="typeset" aria-hidden="true"></div>
+  <div id="printroot" aria-hidden="true"></div>
 
   <!-- Printing progress -->
   <div id="press" class="press hidden">
@@ -153,7 +158,7 @@
   <div id="why" class="press hidden">
     <div class="press-card confirm-card">
       <div class="confirm-icon">?</div>
-      <h2 class="press-title">Why this story?</h2>
+      <h2 class="press-title" id="why-title">Why this story?</h2>
       <div class="why-body" id="why-body"></div>
       <div class="confirm-btns"><button class="big-btn small" id="why-close">Close</button></div>
     </div>

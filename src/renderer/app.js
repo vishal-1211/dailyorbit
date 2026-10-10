@@ -136,7 +136,8 @@
     const idx = reader.order.indexOf(id);
     const next = edition.articles.find(x => x.id === reader.order[idx + 1]);
     view('reader');
-    $('#r-title').textContent = a.title;
+    $('#r-title').textContent = a.title; stopListening();
+    $('#r-others').classList.toggle('hidden', !othersOf(a).length);
     $('#r-original').dataset.url = a.url;
     $('#r-prevstory').disabled = idx <= 0;
     $('#r-nextstory').disabled = !next;
@@ -158,7 +159,7 @@
     syncThumbs(); saveLearning();
   }
   function lesson() { if (edition) { B.learnFromLog(edition, logFor(edition), false); saveLearning(); } }
-  function closeReader() { lesson(); view('paper'); }
+  function closeReader() { stopListening(); lesson(); view('paper'); }
   function syncThumbs() {
     const t = reader.article ? (entry(reader.article.id).thumb || 0) : 0;
     $('#r-up').classList.toggle('on', t === 1); $('#r-down').classList.toggle('on', t === -1);
@@ -233,8 +234,56 @@
     if (reader.article) await openStory(reader.article.id);
     toast(config.settings.readerContinuous ? 'Continuous reading is on: scroll down through the whole story.' : 'Continuous reading is off.', 2600);
   }
+  // ------------------------------------------------------------------ same story, every publisher
+  function othersOf(a) {
+    if (!edition || !a) return [];
+    const ids = new Set([a.id, ...(a.alsoBy || []).map(x => x.id)]);
+    const lead = edition.articles.find(x => (x.alsoBy || []).some(y => y.id === a.id)); if (lead) { ids.add(lead.id); for (const y of lead.alsoBy || []) ids.add(y.id); }
+    ids.delete(a.id); return edition.articles.filter(x => ids.has(x.id));
+  }
+  function showOthers() {
+    const a = reader.article, list = othersOf(a); if (!list.length) return;
+    $('#why-title').textContent = 'One story, every publisher';
+    const row = (x, me) => `<div class="cmp ${me ? 'me' : ''}" ${me ? '' : `data-open="${x.id}"`}><div class="st-kicker">${esc(x.source)}${me ? ' · you are reading this' : ''}</div><b>${esc(x.title)}</b><p>${esc((x.lede || x.summary || x.excerpt || '').slice(0, 320))}…</p><small>${x.words} words${x.image ? ' · with picture' : ''}</small></div>`;
+    $('#why-body').innerHTML = `<p>${list.length + 1} publishers covered this. Compare how each told it; tap one to read it.</p><div class="cmp-grid">${row(a, true)}${list.map(x => row(x)).join('')}</div>`;
+    $('#why').classList.remove('hidden');
+  }
+  // ------------------------------------------------------------------ listen (the computer's own voices, offline)
+  let speaking = false;
+  function stopListening() { try { speechSynthesis.cancel(); } catch { /* none */ } speaking = false; const b = $('#r-listen'); if (b) b.querySelector('span').textContent = '🔊 Listen'; }
+  function listen() {
+    if (speaking) return stopListening();
+    const a = reader.article; if (!a || !window.speechSynthesis) return toast('This computer has no speech voices installed.');
+    const voices = speechSynthesis.getVoices(), local = voices.filter(v => v.localService), en = (l) => l.filter(v => /^en/i.test(v.lang));
+    const voice = en(local).find(v => /IN/.test(v.lang)) || en(local)[0] || local[0] || null; // only voices on this computer: nothing is sent anywhere
+    if (!voice && voices.length) return toast('Only online voices are available, so I won’t read aloud (that would send the text out).', 5000);
+    const text = `${a.title}. ${B.plain(a.html)}`.replace(/\s+/g, ' ');
+    const parts = text.match(/[^.!?]+[.!?]+["”’]?\s*|.+$/g) || [text], chunks = []; let cur = '';
+    for (const p of parts) { if ((cur + p).length > 220) { chunks.push(cur); cur = ''; } cur += p; } if (cur) chunks.push(cur);
+    speaking = true; $('#r-listen span').textContent = '⏹ Stop';
+    chunks.forEach((c, i) => { const u = new SpeechSynthesisUtterance(c); if (voice) u.voice = voice; u.rate = 1.02; if (i === chunks.length - 1) u.onend = stopListening; speechSynthesis.speak(u); });
+  }
+  // ------------------------------------------------------------------ save as PDF: every page, one per sheet
+  async function savePdf() {
+    if (!edition || !paper.book) return;
+    const root = $('#printroot'); root.replaceChildren(...paper.book.pages.map(p => { const c = p.cloneNode(true); c.classList.add('print-page'); return c; }));
+    const pw = paper.book.pages[0].style.getPropertyValue('--pw') || '800px', ph = paper.book.pages[0].style.getPropertyValue('--ph') || '1100px';
+    const st = document.createElement('style'); st.id = 'print-size'; st.textContent = `@page { size: ${pw} ${ph}; margin: 0; }`; document.head.appendChild(st);
+    document.body.classList.add('printing');
+    try {
+      const r = await window.api.savePdf(`The Daily Orbit No ${edition.number || 1} - ${AG.kindLabel(edition.kind || 'all')}`, pw, ph);
+      if (r?.ok) toast('Saved as PDF.');
+    } catch (e) { toast('Could not save the PDF: ' + (e.message || e)); }
+    finally { document.body.classList.remove('printing'); st.remove(); root.replaceChildren(); }
+  }
+  async function openDemo() {
+    const ed = await window.api.loadDemo(); if (!ed) return toast('The demo paper is missing from this copy.');
+    ed.id = 'demo'; ed.demo = true; await renderEdition(ed); toast('Demo paper: made-up stories, printed without internet.', 4000);
+  }
+
   function showWhy() {
     const x = reader.article; if (!x) return;
+    $('#why-title').textContent = 'Why this story?';
     const w = B.why(x), pos = edition.articles.indexOf(x) + 1, pct = Math.round(w.p * 100);
     const chips = (arr) => `<div class="chips">${arr.map(t => `<span>${esc(t)}</span>`).join('')}</div>`;
     $('#why-body').innerHTML = `
@@ -315,6 +364,7 @@
       $('#press-sub').textContent = plan.mode === 'since-last' ? `Stories since ${fmtDay(plan.since)}`
         : plan.mode === 'capped' ? `You’ve been away ${Math.round(plan.gapDays)} days — gathering just the last ${plan.windowDays}` : `Gathering the past ${plan.windowDays} days`;
       if (edition) B.learnFromLog(edition, logFor(edition), true); // the outgoing edition's final lessons
+      try { await window.api.netLogReset(); } catch { /* older main */ }
       const { edition: ed, considered, healed } = await AG.generateEdition({
         plan, config, topics, isCancelled: () => cancelFlag,
         onProgress: ({ stats, note }) => {
@@ -463,6 +513,11 @@
     $('#cont').addEventListener('click', (e) => { const act = e.target.closest('[data-open-url],[data-open-story]'); if (act) activate(act); });
     $('#r-cont').addEventListener('click', toggleCont);
     $('#r-why').addEventListener('click', showWhy);
+    $('#r-others').addEventListener('click', showOthers);
+    $('#r-listen').addEventListener('click', listen);
+    $('#p-pdf').addEventListener('click', savePdf);
+    $('#ns-demo').addEventListener('click', openDemo);
+    $('#why-body').addEventListener('click', (e) => { const c = e.target.closest('[data-open]'); if (c) { $('#why').classList.add('hidden'); openStory(c.dataset.open); } });
     $('#why-close').addEventListener('click', () => $('#why').classList.add('hidden'));
     $('#r-prevstory').addEventListener('click', () => stepStory(-1));
     $('#r-nextstory').addEventListener('click', () => stepStory(1));

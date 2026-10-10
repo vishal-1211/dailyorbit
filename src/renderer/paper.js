@@ -56,7 +56,7 @@
     const topics = ed.topics && ed.topics.length ? ed.topics : ['astronomy'];
     const general = ed.kind === 'all' || topics.length > 1, single = !general ? AG.topicById[topics[0]] : null;
     const hasAstro = topics.includes('astronomy'), hasInstr = hasAstro && X.instruments && X.instruments.feature;
-    const FIXED_PAGES = 5 + (hasInstr ? 1 : 0) + (hasAstro ? 1 : 0); // front, top, people, fun, back (+ instruments, sky)
+    const FIXED_PAGES = 6 + (hasInstr ? 1 : 0) + (hasAstro ? 1 : 0); // front, top, people, fun, back (+ instruments, sky)
     const topicOf = (a) => AG.topicById[a.topic || AG.sectionTopic(a.section) || 'astronomy'] || AG.TOPICS[0];
     const kick = (a) => general ? `<b class="tp-dot" style="--tc:${topicOf(a).color}">${esc(topicOf(a).name)}</b> · ${esc(a.source)}<span> · ${esc(SEC[a.section] || '')}</span>` : `${esc(a.source)}<span> · ${esc(SEC[a.section] || '')}</span>`;
     const pages = [];
@@ -274,6 +274,29 @@
         <div class="sk-far">${sky?.issState === 'old' ? '<p>🛰️ Space-station passes need fresh orbit data: print a new edition to update them.</p>' : sky?.issState === 'none' ? '<p>🛰️ Space-station passes will appear after your next printed edition.</p>' : ''}
           ${far.slice(0, 4).map(e => `<p>${e.icon} <b>${esc(dstr(e.when, { day: 'numeric', month: 'short', year: 'numeric' }))}</b> ${esc(e.title)}</p>`).join('')}
           <p class="sk-note">Worked out on your laptop for ${loc ? esc(loc.name) : 'your location'}; times use your laptop’s clock.</p></div>`;
+    }
+
+    // ---------------------------------------------------------------- you & your paper: taste chart + privacy receipt
+    {
+      const b = newPage('you', 'You & your paper', 'You', 'you-page');
+      const now = Object.fromEntries(AG.TOPICS.map(t => [t.id, B.topicAffinity(t.id)])), then = ed.taste || {};
+      const max = Math.max(0.15, ...AG.TOPICS.map(t => Math.abs(now[t.id])), ...Object.values(then).map(Math.abs));
+      const bar = (v) => `${Math.min(50, (Math.abs(v) / max) * 50)}%`;
+      const rows = AG.TOPICS.map(t => { const v = now[t.id] || 0, w = then[t.id] || 0;
+        return `<div class="ty-row" style="--tc:${t.color}"><span class="ty-name">${t.icon} ${esc(t.name)}</span><span class="ty-track"><i class="ty-bar ${v < 0 ? 'neg' : ''}" style="width:${bar(v)}"></i>${ed.taste ? `<i class="ty-then ${w < 0 ? 'neg' : ''}" style="--x:${bar(w)}" title="when this paper was printed"></i>` : ''}</span><b>${v > 0.02 ? 'more' : v < -0.02 ? 'less' : '—'}</b></div>`; }).join('');
+      const R = ed.receipt, hosts = R ? Object.entries(R.hosts).sort((x, y) => y[1] - x[1]) : [];
+      b.innerHTML = `${band('You & your paper', 'What it learned · what left your laptop')}
+        <div class="you-cols">
+          <section><div class="pp-h">Your taste, by desk</div>
+            <p class="you-note">Bars to the right: desks you read more. To the left: desks you skip. ${ed.taste ? 'The thin mark shows where each desk stood when this paper was printed.' : ''} It learns from what you open, finish and rate. ${B.explain().lessons} lessons so far.</p>
+            <div class="ty-chart">${rows}</div></section>
+          <section><div class="pp-h">What left your laptop</div>
+            ${R ? `<div class="rc-big"><b>${R.requests}</b> requests to <b>${hosts.length}</b> public sites${R.route === 'tor' ? ', through Tor' : ''}</div>
+            <ul class="rc-sent"><li>✓ No cookies, no IDs, no “came from” links</li><li>✓ No location, no reading history, no ratings</li><li>✓ Every story in the window was fetched, not just the ones you like</li><li>✓ Pictures saved now: reading makes no requests</li></ul>
+            <div class="pp-h">Sites contacted</div><ul class="rc-hosts fit-list">${hosts.map(([h, n]) => `<li title="${esc(h)}"><span>${esc(h.replace(/^(www|feeds?|rss)\./, ''))}</span><i>${n}</i></li>`).join('')}</ul>`
+            : '<p class="you-note">This paper was printed before receipts existed.</p>'}
+          </section>
+        </div>`;
     }
 
     // ---------------------------------------------------------------- back page

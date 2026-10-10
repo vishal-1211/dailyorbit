@@ -20,15 +20,18 @@ function localize(e) {
     a.html = String(a.html || '').replace(/<img\b[^>]*>/gi, (t) => { const m = t.match(/\ssrc="([^"]*)"/); const d = m && /^https?:/.test(m[1]) ? dataUrl(m[1].replace(/&amp;/g, '&')) : (m ? m[1] : ''); return d ? t.replace(m[1], d) : ''; });
   }
 }
-const fetched = []; const rendererRequests = []; const articleCache = {}; let LATENCY = Number(process.env.LATENCY || 150); // ms per request, like a real network
+const fetched = []; const runLog = []; const rendererRequests = []; const articleCache = {}; let LATENCY = Number(process.env.LATENCY || 150); // ms per request, like a real network
 const api = {
   getConfig: () => store.config, saveConfig: (c) => (store.config = c), resetSources: () => store.config,
-  fetchText: async (u) => { fetched.push(u); if (LATENCY) await new Promise(r => setTimeout(r, LATENCY)); return fetchText(u); },
+  fetchText: async (u) => { fetched.push(u); runLog.push(u); if (LATENCY) await new Promise(r => setTimeout(r, LATENCY)); return fetchText(u); },
+  netLogReset: () => { runLog.length = 0; },
+  loadDemo: () => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'src', 'demo', 'demo-edition.json'), 'utf8')); } catch { return null; } },
+  savePdf: () => ({ ok: true }),
   articleCacheGet: (urls) => { const o = {}; for (const u of urls) if (articleCache[u]) o[u] = articleCache[u]; return o; },
   articleCachePut: (list) => { for (const e of list) articleCache[e.url] = { t: Date.now(), ...(e.paywalled ? { paywalled: true } : { art: e.art }) }; },
   checkRoute: () => ({ ok: true, isTor: false }), endRun: () => null,
   planEdition: (kind = 'all') => ({ ...planWindow((store.state.lastByKind || {})[kind] || null, Date.now(), store.config.settings.windowDays), kind, lastByKind: { ...(store.state.lastByKind || {}) }, lastGeneratedAt: (store.state.lastByKind || {})[kind] || null, nextNumber: store.state.editionCount + 1, seen: Object.keys(store.state.seen) }),
-  saveEdition: (e, considered) => { localize(e); store.state.editionCount++; e.number = store.state.editionCount; (store.state.lastByKind ||= {})[e.kind || 'all'] = e.until; for (const u of considered) store.state.seen[u] = Date.now(); store.editions[e.id] = e; return e; },
+  saveEdition: (e, considered) => { const hosts = {}; for (const u of runLog) { const h = new URL(u).hostname; hosts[h] = (hosts[h] || 0) + 1; } e.receipt = { requests: runLog.length, hosts, route: 'off' }; localize(e); store.state.editionCount++; e.number = store.state.editionCount; (store.state.lastByKind ||= {})[e.kind || 'all'] = e.until; for (const u of considered) store.state.seen[u] = Date.now(); store.editions[e.id] = e; return e; },
   listEditions: () => Object.values(store.editions).sort((a, b) => b.id.localeCompare(a.id)).map(e => ({ id: e.id, number: e.number, createdAt: e.createdAt, since: e.since, until: e.until, kind: e.kind || 'all', count: e.articles.length })),
   loadEdition: (id) => store.editions[id] || null, markRead: (id, aid) => { const a = store.editions[id]?.articles.find(x => x.id === aid); if (a) a.read = true; }, openExternal: () => null, openSources: () => null,
   // Stand-in for the optional pre-trained language model (the real one only runs inside the desktop app)
@@ -97,7 +100,8 @@ const audit = (page) => page.evaluate(() => {
   console.log(`  print time (simulated ${LATENCY} ms network): ${(ed1.timing.total / 1000).toFixed(1)} s (feeds ${(ed1.timing.feeds / 1000).toFixed(1)} s, stories ${(ed1.timing.pages / 1000).toFixed(1)} s)`);
   console.log(`Edition 1: ${ed1.articles.length} stories → ${a1.pages} pages [${a1.keys.join(', ')}], ${a1.stories} stories on the pages`);
   assert(a1.pages <= 24, 'never more than the page limit'); assert.deepEqual(a1.overflow, [], 'nothing cut off: ' + a1.overflow.join(' | '));
-  for (const k of ['front', 'top', 'people', 'instruments', 'fun', 'sky', 'back']) assert(a1.keys.includes(k), 'missing page ' + k);
+  for (const k of ['front', 'top', 'people', 'instruments', 'fun', 'sky', 'you', 'back']) assert(a1.keys.includes(k), 'missing page ' + k);
+  if (process.env.DUMP_DEMO) { const d = JSON.parse(JSON.stringify(ed1)); d.demo = true; fs.mkdirSync(path.join(__dirname, '..', 'src', 'demo'), { recursive: true }); fs.writeFileSync(path.join(__dirname, '..', 'src', 'demo', 'demo-edition.json'), JSON.stringify(d)); console.log('  demo paper written'); }
   const healed = store.config.sources.find(s => s.id === 'skytel').url;
   assert.equal(healed, 'https://skyandtelescope.org/feed/', 'moved feed found and saved automatically'); console.log('✓ self-repair: a moved feed was found from the publisher’s home page');
   assert(ed1.sky.tle && ed1.sky.cad, 'sky data stored with the edition');

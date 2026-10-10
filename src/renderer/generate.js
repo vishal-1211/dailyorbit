@@ -214,7 +214,8 @@
       articles: ranked,
       stats,
       sky,
-      timing: { ...timing, total: Math.round(performance.now() - T0) }
+      timing: { ...timing, total: Math.round(performance.now() - T0) },
+      taste: Object.fromEntries(AG.TOPICS.map(t => [t.id, B.topicAffinity(t.id)])) // the reader's leaning when this paper was printed
     };
     const skyNow = AG.skyFor ? AG.skyFor(config.settings.location, sky) : null;
     const soon = (skyNow?.events || []).filter(e => e.when - Date.now() < 12 * 864e5).map(e => e.kind);

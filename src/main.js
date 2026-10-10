@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, net, shell, nativeTheme, Menu, session, protocol } = require('electron');
+const { app, BrowserWindow, ipcMain, net, shell, nativeTheme, Menu, session, protocol, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -217,7 +217,9 @@ async function applyProxy(settings) {
   await netSes.closeAllConnections();
 }
 
+let netLog = []; // every address contacted during a print run: shown to the reader as a receipt
 function sesFetch(url, init) {
+  try { netLog.push(new URL(url).hostname); } catch { /* not a URL */ }
   if (typeof netSes.fetch !== 'function') throw new Error('This Electron version is too old for private fetching');
   return netSes.fetch(url, { ...init, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store' });
 }
@@ -424,8 +426,21 @@ function registerIpc() {
     };
   });
 
+  ipcMain.handle('net:log-reset', () => { netLog = []; });
+  ipcMain.handle('demo:load', () => readJSON(path.join(__dirname, 'demo', 'demo-edition.json'), null));
+  ipcMain.handle('edition:pdf', async (e, name, w, h) => {
+    const win = BrowserWindow.fromWebContents(e.sender);
+    const pick = await dialog.showSaveDialog(win, { title: 'Save the paper as PDF', defaultPath: path.join(app.getPath('documents'), String(name || 'The Daily Orbit').replace(/[\\/:*?"<>|]/g, '-') + '.pdf'), filters: [{ name: 'PDF', extensions: ['pdf'] }] });
+    if (pick.canceled || !pick.filePath) return { ok: false };
+    const pdf = await e.sender.printToPDF({ printBackground: true, preferCSSPageSize: true, margins: { marginType: 'none' } });
+    fs.writeFileSync(pick.filePath, pdf); shell.showItemInFolder(pick.filePath);
+    return { ok: true, path: pick.filePath };
+  });
   ipcMain.handle('edition:save', async (_e, edition, consideredUrls) => {
     await localizeEdition(edition);
+    // The receipt: which sites were contacted for this paper, and that nothing about the reader was sent.
+    const hosts = {}; for (const h of netLog) hosts[h] = (hosts[h] || 0) + 1;
+    edition.receipt = { requests: netLog.length, hosts, route: getConfig().settings.proxyMode || 'off' };
     const state = getState();
     // Remember every URL that was in the window (even paywalled / failed ones)
     // so they don't reappear in the next edition. Forget entries after 21 days.

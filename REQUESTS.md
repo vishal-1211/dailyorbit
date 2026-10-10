@@ -33,3 +33,5 @@ Status: done, folded into 1.1.0 (built, waiting for Vishal to say release).
 |---|---|---|
 | 1 | Up and down arrow keys should move the page up and down | ↑/↓ scroll the page you are on (paper and reader, incl. zoom and fit-width); they never turn pages. |
 | 2 | Location: the system's location, or Mumbai for now if that gets complicated | Mumbai becomes the default. Windows' own location service asks Google/Microsoft servers using nearby Wi-Fi, which breaks the "nothing flows out" rule, so it is not used; the city picker stays. |
+
+# Round 7 (10 Oct 2026, 16:55) — build-day extras, all approved: offline demo paper · "What left your laptop" privacy page · taste chart · listen aloud (offline voices) · save as PDF · same story from every publisher. One hour left: built fast.
