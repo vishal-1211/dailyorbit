@@ -116,6 +116,259 @@ Full screen-reader support and a high-contrast mode are next on the roadmap (see
 - **One story, every publisher**: when several outlets cover the same news, compare how each told it, side by side.
 - **A real paper**: Page 3 people, a quiz built from the week's stories, did-you-know facts, home-made memes, great telescopes and your own sky when Astronomy is in the paper.
 
+## How it works
+
+Everything runs on your laptop. The only part allowed to touch the internet is a private fetcher with no cookies, no IDs and no referrer; the windows you read in cannot reach the internet at all.
+
+```mermaid
+flowchart LR
+  subgraph Internet
+    P["Publisher feeds and article pages"]
+    S["Public sky data<br/>CelesTrak, JPL"]
+  end
+
+  subgraph Main["Main process (src/main.js)"]
+    NET["Private network session<br/>in memory, no cookies, no referrer"]
+    STORE[("JSON files in the<br/>user data folder")]
+    IMG["Picture cache<br/>gzimg:// protocol"]
+    EMB["Optional language model<br/>src/embedder.js"]
+  end
+
+  subgraph Renderer["Windows (src/renderer) — cannot reach the internet"]
+    GEN["generate.js<br/>builds an edition"]
+    BRAIN["brain.js<br/>understands, ranks, learns"]
+    PAPER["paper.js / typeset.js / book.js<br/>lays out and shows the paper"]
+    SRC["sources.html<br/>settings window"]
+  end
+
+  P --> NET
+  S --> NET
+  NET -->|text only, through preload.js| GEN
+  GEN --> BRAIN --> PAPER
+  GEN <--> STORE
+  BRAIN <--> STORE
+  IMG --> PAPER
+  EMB --> BRAIN
+  SRC <--> STORE
+```
+
+### Printing a paper, step by step
+
+```mermaid
+sequenceDiagram
+  participant U as Reader
+  participant A as app.js
+  participant G as generate.js
+  participant M as main.js
+  participant W as Internet
+  participant B as brain.js
+
+  U->>A: Generate edition
+  A->>M: edition:plan
+  M-->>A: time window + URLs already shown
+  A->>G: generateEdition(config, plan)
+  loop every enabled source
+    G->>M: net:fetch(feed)
+    M->>W: GET (private session)
+    W-->>G: feed XML
+    Note over G: feed.js parses, keeps items in the window
+    loop every item in the window
+      G->>M: net:fetch(article page)
+      Note over G: extract.js pulls the story,<br/>skips paywalled ones
+    end
+  end
+  G->>B: enrich, ingest, adaptSections, cluster, rank
+  G->>M: net:fetch(orbit data, asteroid data)
+  G-->>A: edition
+  A->>M: edition:save
+  Note over M: downloads every picture now,<br/>rewrites links to gzimg://
+  A->>M: net:end-run (clear session)
+  A->>U: paper.js lays out the pages
+```
+
+### What it stores (all on your laptop)
+
+<details>
+<summary>Data model: entity-relationship diagram</summary>
+
+```mermaid
+erDiagram
+  CONFIG ||--|| SETTINGS : has
+  CONFIG ||--o{ SOURCE : lists
+  SETTINGS ||--|| LOCATION : has
+  STATE ||--o{ SEEN_URL : remembers
+  EDITION ||--o{ ARTICLE : contains
+  EDITION ||--o{ SOURCE_STAT : reports
+  EDITION ||--|| SKY_DATA : carries
+  EDITION ||--|| EXTRAS : carries
+  SOURCE ||--o{ ARTICLE : publishes
+  SOURCE ||--o{ SOURCE_STAT : "measured by"
+  ARTICLE }o--o{ IMAGE : shows
+  ARTICLE ||--o{ ARTICLE : "merged with (alsoBy)"
+  EXTRAS ||--o{ QUIZ_QUESTION : includes
+  LEARNING ||--|| BRAIN_STATE : holds
+  LEARNING ||--o{ EDITION_LOG : holds
+  EDITION ||--o| EDITION_LOG : "read as"
+  EDITION_LOG ||--o{ LOG_ENTRY : has
+  ARTICLE ||--o| LOG_ENTRY : "tracked by"
+
+  CONFIG {
+    object settings
+    array sources
+    array seenDefaults "default source ids already offered"
+  }
+  SETTINGS {
+    int windowDays "1-30, default 7"
+    int maxPerSource "default 15"
+    int maxPages "8-30, default 24"
+    array topics "desks in the Everything paper"
+    array lastPick "desks chosen last time"
+    string theme "night or day"
+    string paperSize
+    string readerSize
+    bool turnGestures "default false"
+    bool readerContinuous "default false"
+    string proxyMode "off, tor or custom"
+    string proxyUrl
+    bool warnOriginal
+  }
+  LOCATION {
+    string name
+    float lat
+    float lon
+  }
+  SOURCE {
+    string id PK
+    string topic "desk"
+    string name
+    string url "feed address"
+    bool enabled
+    bool topicOnly "keep on-topic items only"
+    string urlMatch "optional link filter"
+  }
+  STATE {
+    object lastByKind "kind to end of its last edition"
+    int editionCount
+  }
+  SEEN_URL {
+    string url PK
+    int seenAt "forgotten after 21 days"
+  }
+  EDITION {
+    string id PK "timestamp, also the file name"
+    int number
+    int createdAt
+    int since "window start"
+    int until "window end"
+    string mode "first, since-last or capped"
+    string kind "all, finance, finance+sports..."
+    array topics "desks in this paper"
+    float gapDays
+    int windowDays
+  }
+  ARTICLE {
+    string id PK
+    string sourceId FK
+    string topic "desk"
+    string title
+    string url
+    string canon "normalised url"
+    string author
+    int published
+    string image "gzimg address"
+    string html "cleaned full text"
+    int words
+    bool partial "feed summary only"
+    string section "sky, solar, missions, deep, frontiers"
+    string summary
+    string lede
+    array facts
+    array numbers
+    array quotes
+    array terms
+    array vec "optional pre-trained embedding"
+    float q "editorial quality"
+    float p "predicted interest 0-1"
+    float rank
+    bool variety "outside-usual-taste pick"
+    bool dup "merged into another story"
+    int coverage "publishers covering it"
+    bool read
+  }
+  SOURCE_STAT {
+    string id FK
+    string status
+    int found
+    int used
+    int paywalled
+    int failed
+    int dupes
+    int failing "editions in a row unreachable"
+  }
+  SKY_DATA {
+    string tle "space-station orbits"
+    object cad "asteroid close approaches"
+    int fetchedAt
+  }
+  EXTRAS {
+    array didYouKnow
+    array funFacts
+    array numbers
+    array memes
+    object people
+    object instruments
+    array onThisDay
+  }
+  QUIZ_QUESTION {
+    string id PK
+    string q
+    array options
+    int answer
+    string storyId FK "when taken from a story"
+  }
+  IMAGE {
+    string file PK "sha1 of the address + extension"
+  }
+  LEARNING {
+    object state
+    object logs "keyed by edition id"
+  }
+  EDITION_LOG {
+    string editionId FK
+    object quiz "question id to chosen answer (stored as _quiz)"
+  }
+  LOG_ENTRY {
+    string articleId FK
+    int seen
+    int opened
+    float completion "0-1, how far it was read"
+    int thumb "1, -1 or 0"
+  }
+  BRAIN_STATE {
+    float n "lessons learned"
+    float bias
+    object w "feature weights"
+    object terms "word vectors"
+    array profile "taste vector, self-taught"
+    array profileX "taste vector, pre-trained"
+    object centroids "section centres"
+    object track "scorecard counts"
+    object quiz "asked, correct"
+    object health "per-source failures"
+    array usedFacts
+    array usedQuiz
+    array usedPeople
+    array usedInstruments
+  }
+```
+
+</details>
+
+| ![Day paper: dark text on cream](docs/images/day-theme.jpg) | ![Check the model now: proof the learning works](docs/images/model-check.jpg) |
+|---|---|
+
+More detail: [Architecture](docs/ARCHITECTURE.md) · [Data model](docs/DATA-MODEL.md) · [Privacy design](docs/PRIVACY.md) · [How it learns](docs/LEARNING.md)
+
 ## Upcoming extensions
 
 The Daily Orbit is young. These are on the roadmap:
