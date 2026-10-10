@@ -19,6 +19,8 @@
   <img alt="licence" src="https://img.shields.io/badge/licence-MIT-green">
 </p>
 
+<p align="center"><b><a href="https://vishal-1211.github.io/dailyorbit/">🌐 See the website</a></b></p>
+
 <p align="center"><i>Built at the Claude Build Day, Mumbai (10 Oct 2026), with Claude Code.</i></p>
 
 <p align="center"><img src="docs/images/demo.gif" width="900" alt="Animated tour: choose desks on the newsstand, turn the pages of the paper, see the You and your paper receipt, read a story and compare how two publishers told it"></p>

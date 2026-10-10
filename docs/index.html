@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Daily Orbit — a newspaper that learns you</title>
+<meta name="description" content="A free, private desktop newspaper that learns your taste on your laptop. Nine desks, about 70 free sources, audio briefings, and a receipt proving nothing about you leaves your machine.">
+<meta property="og:title" content="The Daily Orbit">
+<meta property="og:description" content="A newspaper that learns you, not one that sells you.">
+<meta property="og:image" content="images/social-preview.png">
+<link rel="icon" href="images/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #070a14; --bg2: #0d1324; --ink: #efe9d9; --ink2: #b9b3a3; --muted: #7d8295; --gold: #e9b65a; --line: rgba(239,233,217,.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.6 Inter, system-ui, sans-serif; overflow-x: hidden; }
+  a { color: var(--gold); }
+  .stars { position: fixed; inset: 0; z-index: -1; background: radial-gradient(ellipse at 20% 10%, rgba(79,140,255,.18), transparent 50%), radial-gradient(ellipse at 85% 30%, rgba(233,182,90,.14), transparent 45%), radial-gradient(ellipse at 50% 100%, rgba(167,139,250,.12), transparent 50%), var(--bg); }
+  .stars canvas { width: 100%; height: 100%; display: block; }
+  .wrap { width: min(1120px, 100% - 32px); margin: 0 auto; }
+  nav { display: flex; align-items: center; gap: 12px; padding: 18px 0; }
+  nav b { font: 800 18px Unbounded, sans-serif; letter-spacing: -.02em; }
+  nav img { width: 34px; height: 34px; }
+  nav .sp { flex: 1; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font: 600 15px Inter, sans-serif; text-decoration: none; transition: transform .2s; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn.gold { background: var(--gold); color: #1a1405; }
+  .btn.ghost { border: 1px solid var(--line); color: var(--ink); }
+  header.hero { text-align: center; padding: 70px 0 30px; }
+  .orb { width: 120px; height: 120px; margin: 0 auto 26px; animation: float 6s ease-in-out infinite; }
+  @keyframes float { 50% { transform: translateY(-10px) rotate(3deg); } }
+  .eyebrow { font: 600 13px Inter; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); }
+  h1 { font: 800 clamp(40px, 7vw, 86px)/1 Unbounded, sans-serif; letter-spacing: -.045em; margin: 14px 0 18px; }
+  h1 span { background: linear-gradient(110deg, var(--gold), #f472b6 60%, #a78bfa); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { font: 600 clamp(20px, 2.6vw, 28px)/1.35 Fraunces, Georgia, serif; max-width: 760px; margin: 0 auto 30px; color: var(--ink); }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .pills { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+  .pills span { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); font-size: 14px; color: var(--ink2); background: rgba(13,19,36,.6); }
+  .demo { margin: 50px auto 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 40px 120px rgba(0,0,0,.6), 0 0 0 1px rgba(233,182,90,.15); max-width: 1000px; }
+  .demo img { display: block; width: 100%; }
+  section { padding: 90px 0 10px; }
+  h2 { font: 800 clamp(28px, 4vw, 44px)/1.1 Unbounded, sans-serif; letter-spacing: -.035em; margin: 0 0 14px; }
+  .sub { color: var(--ink2); max-width: 700px; margin: 0 0 34px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card { padding: 24px; border-radius: 18px; border: 1px solid var(--line); background: linear-gradient(160deg, rgba(255,255,255,.04), rgba(255,255,255,.01)); }
+  .card i { font-style: normal; font-size: 30px; display: block; margin-bottom: 10px; }
+  .card b { display: block; font: 700 18px Inter; margin-bottom: 6px; }
+  .card p { margin: 0; color: var(--ink2); font-size: 15px; }
+  .desks { display: flex; flex-wrap: wrap; gap: 10px; }
+  .desks span { padding: 10px 16px; border-radius: 14px; font-weight: 600; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 14%, transparent); }
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+  figure { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--bg2); }
+  figure img { display: block; width: 100%; }
+  figcaption { padding: 12px 16px; font-size: 14px; color: var(--ink2); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { padding: 14px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+  td:nth-child(2) { color: #7ee2a8; font-weight: 600; }
+  td:nth-child(3) { color: var(--muted); }
+  .receipt { display: grid; grid-template-columns: 1.1fr 1fr; gap: 30px; align-items: center; }
+  .receipt ul { list-style: none; padding: 0; margin: 0; }
+  .receipt li { padding: 8px 0; color: #7ee2a8; font-weight: 500; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; text-align: center; }
+  .stats div { padding: 26px 10px; border-radius: 18px; border: 1px solid var(--line); }
+  .stats b { display: block; font: 800 40px Unbounded, sans-serif; color: var(--gold); letter-spacing: -.03em; }
+  .stats span { color: var(--ink2); font-size: 14px; }
+  .road li { margin: 8px 0; color: var(--ink2); }
+  .road b { color: var(--ink); }
+  footer { padding: 90px 0 60px; text-align: center; color: var(--muted); }
+  footer .lede { margin-bottom: 26px; }
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s, transform .8s; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (max-width: 760px) { .receipt { grid-template-columns: 1fr; } nav .hide { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .orb { animation: none; } .reveal { opacity: 1; transform: none; transition: none; } }
+</style>
+</head>
+<body>
+<div class="stars"><canvas id="sky"></canvas></div>
+
+<div class="wrap">
+  <nav>
+    <img src="images/logo.png" alt=""><b>The Daily Orbit</b><span class="sp"></span>
+    <a class="btn ghost hide" href="#features">Features</a>
+    <a class="btn gold" href="https://github.com/vishal-1211/dailyorbit">View on GitHub</a>
+  </nav>
+
+  <header class="hero">
+    <svg class="orb" viewBox="0 0 120 120" aria-hidden="true"><defs><radialGradient id="g" cx="35%" cy="30%"><stop offset="0" stop-color="#fff3cf"/><stop offset=".45" stop-color="#e9b65a"/><stop offset="1" stop-color="#8b3fc4"/></radialGradient></defs><circle cx="60" cy="60" r="34" fill="url(#g)"/><ellipse cx="60" cy="64" rx="56" ry="13" fill="none" stroke="#f4d48f" stroke-width="4" transform="rotate(-18 60 64)"/></svg>
+    <div class="eyebrow">Built at the Claude Build Day · Mumbai · 10 Oct 2026</div>
+    <h1>The Daily <span>Orbit</span></h1>
+    <p class="lede">A newspaper that learns you, not one that sells you.</p>
+    <div class="cta"><a class="btn gold" href="https://github.com/vishal-1211/dailyorbit">Get it on GitHub</a><a class="btn ghost" href="#how">See how it works</a></div>
+    <div class="pills"><span>Free</span><span>No account</span><span>No ads</span><span>No tracking</span><span>Learns on your laptop</span><span>Works offline</span></div>
+    <div class="demo"><img src="images/demo.gif" alt="Animated tour of The Daily Orbit: choosing desks, turning pages, the privacy receipt and comparing publishers"></div>
+  </header>
+
+  <section id="features" class="reveal">
+    <h2>Your own newspaper, printed for one reader</h2>
+    <p class="sub">Pick Everything or any mix of nine desks. In seconds it reads about seventy free publishers and lays out a real paper: front page, sections, quiz, memes, and a back page. It ends. You finish it.</p>
+    <div class="desks">
+      <span style="--c:#4f8cff">🌍 World</span><span style="--c:#ff8a3d">🇮🇳 India</span><span style="--c:#22c55e">📈 Finance</span><span style="--c:#a78bfa">💻 Technology</span><span style="--c:#14b8a6">🔬 Science</span><span style="--c:#ef4444">🏏 Sports</span><span style="--c:#e9b65a">🔭 Astronomy</span><span style="--c:#f472b6">🩺 Health</span><span style="--c:#f59e0b">🎬 Entertainment</span>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="grid">
+      <div class="card"><i>🧠</i><b>Learns you, privately</b><p>Open what you like, tap 👍 or 👎. One on-device model learns across every desk. Nothing is sent anywhere.</p></div>
+      <div class="card"><i>🧾</i><b>Proof, not promises</b><p>Every paper ends with “What left your laptop”: every site contacted, and that no cookies, IDs or reading history went out.</p></div>
+      <div class="card"><i>🎧</i><b>Two-minute briefing</b><p>One click reads the top five stories aloud with your computer’s own voices. Offline. Great for low vision, dyslexia, or breakfast.</p></div>
+      <div class="card"><i>⚖️</i><b>One story, every publisher</b><p>When several outlets cover the same news, compare how each told it, side by side.</p></div>
+      <div class="card"><i>⚡</i><b>Seconds, not minutes</b><p>A full paper from ~50 publishers in about 22 seconds in our benchmark; a second paper the same day is near-instant.</p></div>
+      <div class="card"><i>🌙</i><b>Calm by design</b><p>No infinite feed, no pop-ups, no autoplay. Big type, zoom to 250%, night and day paper, keyboard-first.</p></div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <h2>A look inside</h2>
+    <div class="shots">
+      <figure><img src="images/cover.jpg" alt="Front page"><figcaption>The front page of an Everything paper</figcaption></figure>
+      <figure><img src="images/newsstand.jpg" alt="Newsstand"><figcaption>The newsstand: Everything, or any mix of desks</figcaption></figure>
+      <figure><img src="images/finance-edition.jpg" alt="Finance edition"><figcaption>A Finance edition, with its own masthead and backdrop</figcaption></figure>
+      <figure><img src="images/fun-and-quiz.jpg" alt="Fun and games"><figcaption>Quiz from this week’s stories, did-you-know, memes</figcaption></figure>
+      <figure><img src="images/compare.jpg" alt="Compare publishers"><figcaption>One story, every publisher</figcaption></figure>
+      <figure><img src="images/continuous-reader.jpg" alt="Reader"><figcaption>A book-style reader, or one continuous scroll</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="how" class="reveal">
+    <div class="receipt">
+      <div>
+        <h2>Private, provably</h2>
+        <p class="sub">The windows you read in cannot reach the internet at all. A private fetcher collects every story in the date window, not just the ones you like, so even the requests say nothing about your taste.</p>
+        <ul><li>✓ No account, no cookies, no IDs</li><li>✓ No location, no reading history, no ratings sent</li><li>✓ Pictures saved at print time: reading makes no requests</li><li>✓ Optional Tor routing, built in</li></ul>
+      </div>
+      <figure><img src="images/you-and-your-paper.jpg" alt="You and your paper page: taste chart and list of sites contacted"><figcaption>“You &amp; your paper”: what it learned, and what left your laptop</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <h2>Why it’s different</h2>
+    <table>
+      <tr><th></th><th>The Daily Orbit</th><th>Typical news apps</th></tr>
+      <tr><td>Who learns your taste</td><td>Your own laptop</td><td>Company servers</td></tr>
+      <tr><td>Account, ads, trackers</td><td>None</td><td>Usually all three</td></tr>
+      <tr><td>Shows what it sent</td><td>A receipt in every paper</td><td>No</td></tr>
+      <tr><td>Paywalled stories</td><td>Detected and skipped</td><td>Shown, then blocked</td></tr>
+      <tr><td>Format</td><td>A paper that ends</td><td>An endless feed</td></tr>
+      <tr><td>Cost</td><td>Free, open source</td><td>Ads or subscription</td></tr>
+    </table>
+  </section>
+
+  <section class="reveal">
+    <div class="stats">
+      <div><b>9</b><span>desks, from World to the night sky</span></div>
+      <div><b>~70</b><span>free sources, ready to go</span></div>
+      <div><b>~22 s</b><span>from click to paper (benchmark)</span></div>
+      <div><b>0</b><span>bytes about you sent anywhere</span></div>
+      <div><b>₹0</b><span>no subscription, no paid AI</span></div>
+    </div>
+  </section>
+
+  <section class="reveal road">
+    <h2>What’s next</h2>
+    <ul>
+      <li><b>Phone and tablet apps</b>: the same private engine, in your pocket.</li>
+      <li><b>Private sync</b> between your devices, with no cloud account.</li>
+      <li><b>One-click installer</b> and a paper that prints itself before you wake up.</li>
+      <li><b>Indian languages</b>: Hindi, Gujarati, Marathi and more, read aloud too.</li>
+      <li><b>Live boxes</b>: markets, scores and weather from free public data.</li>
+      <li><b>Accessibility, further</b>: full screen-reader support, high contrast, dyslexia-friendly type.</li>
+    </ul>
+  </section>
+
+  <footer class="reveal">
+    <p class="lede">Free. Private. Finite. Yours.</p>
+    <a class="btn gold" href="https://github.com/vishal-1211/dailyorbit">Get The Daily Orbit</a>
+    <p style="margin-top:40px">Built with Claude Code · MIT licence · Screenshots use made-up demo stories</p>
+  </footer>
+</div>
+
+<script>
+  // A slow starfield in the background (respects reduced motion)
+  const c = document.getElementById('sky'), x = c.getContext('2d'); let W, H, S = [];
+  const size = () => { W = c.width = innerWidth * devicePixelRatio; H = c.height = innerHeight * devicePixelRatio; S = Array.from({ length: 160 }, () => [Math.random() * W, Math.random() * H, Math.random() * 1.4 + .3, Math.random()]); };
+  size(); addEventListener('resize', size);
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  (function draw(t) { x.clearRect(0, 0, W, H); for (const s of S) { x.globalAlpha = .25 + .5 * Math.abs(Math.sin(t / 1800 + s[3] * 9)); x.fillStyle = '#dfe6ff'; x.beginPath(); x.arc(s[0], s[1], s[2] * devicePixelRatio, 0, 7); x.fill(); } if (!still) requestAnimationFrame(draw); })(0);
+  const io = new IntersectionObserver((es) => es.forEach(e => e.isIntersecting && e.target.classList.add('in')), { threshold: .12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
