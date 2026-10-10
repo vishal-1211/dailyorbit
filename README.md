@@ -28,12 +28,56 @@ Open the newsstand, choose **Everything** or any mix of desks, and press **Print
 - **Listen, compare, PDF**: stories read aloud with offline voices, the same story from every publisher side by side, the whole paper as a PDF, and a demo paper that works offline.
 - **Private**: the reading windows cannot reach the internet; publishers see a generic reader with no cookies. Optional Tor routing.
 
+## Why The Daily Orbit
+
+**A newspaper that learns you, not one that sells you.** Most news apps learn what you read so they can keep you scrolling and sell your attention. The Daily Orbit learns what you read so it can print you a better paper, and that knowledge never leaves your laptop.
+
+| | The Daily Orbit | Typical news apps and aggregators |
+|---|---|---|
+| Who learns your taste | Your own laptop | The company's servers |
+| Account / sign-in | None | Usually required |
+| Ads, trackers, cookies | None | Common |
+| Cost | Free, no subscription, no paid AI | Free with ads, or paid |
+| Works offline | Yes: read every saved paper, plus a demo paper | Mostly online only |
+| Shows you what it sent | Yes: a receipt page in every paper | No |
+| Paywalled stories | Detected and skipped | Often shown, then blocked |
+| Format | A designed newspaper with pages, sections and an ending | An endless feed |
+
+**What you get**
+
+- **Calm by design.** A paper has a front page and a back page. You finish it. No infinite scroll, no notifications, no autoplay.
+- **Fast.** A full Everything paper from about 50 publishers is ready in seconds (about 22 s in our slow-network benchmark), and a second paper the same day reuses what it already read.
+- **Personal across topics.** One on-device model learns from every desk. Read the money pages and Finance moves up in every paper; skip cricket and it shrinks, but never disappears. About one story in five is deliberately something different, so it doesn't trap you in a bubble.
+- **Transparent.** "Why this?" explains why any story was picked; the taste chart shows what it has learned; "Check the model now" tests it; one button erases it.
+- **Private, provably.** The reading windows cannot reach the internet at all. Publishers see a generic reader with no cookies, no IDs, no referrer. Every story in the date window is fetched, not just the ones you like, so even the requests reveal nothing about your taste. Pictures are saved when the paper is printed, so reading makes no requests. Optional Tor routing. The "What left your laptop" page lists every site contacted.
+- **Made for India and the world.** World and India desks side by side, Indian and global publishers, cricket next to football and F1, Sensex next to the Fed, and a sky page for your own city.
+- **More than headlines.** Full articles in a book-style reader, a quiz built from the week's stories, did-you-know facts, Page 3 people, home-made memes, and the same story from every publisher side by side.
+- **Listen.** "▶ Briefing" reads the top five stories aloud in about two minutes, and any story can be read aloud, using only the voices on your computer.
+- **Keep it.** Save any paper as a PDF; back issues stay on your laptop.
+- **Yours to shape.** About 70 free sources ready to go, any RSS feed or website can be added, nine desks you can mix in any combination, night and day paper, zoom, fit-to-width and continuous reading.
+- **Open source, MIT licence.** Read every line of what runs on your machine.
+
 | | |
 |---|---|
 | ![Front page](docs/images/cover.jpg) | ![World and India pages](docs/images/spread.jpg) |
 | ![Finance edition](docs/images/finance-edition.jpg) | ![Fun and quiz page](docs/images/fun-and-quiz.jpg) |
 
 <sub>Screenshots come from the automated tests, which use made-up stories and placeholder pictures.</sub>
+
+## Upcoming extensions
+
+The Daily Orbit is young. These are on the roadmap:
+
+- **Phone and tablet apps.** Today it runs on Windows desktops only. An Android version can reuse about 85% of the code; iOS and macOS/Linux builds would follow.
+- **Sync between your devices, privately.** Each device learns on its own today. Planned: an encrypted export/import of your taste, with no cloud account.
+- **One-click installer and auto-update.** Today the first run needs Node.js and downloads its runtime; a signed installer would remove that step.
+- **Scheduled morning paper.** Print automatically at a time you choose, ready when you wake up.
+- **More languages.** Hindi, Gujarati, Marathi and other Indian-language desks, and reading aloud in them.
+- **Live data boxes.** Market indices, match scores and weather alongside the news, from free public sources.
+- **Smarter writing on the page.** Today summaries are extracted from the article itself; a small on-device model could write short, neutral summaries and headlines.
+- **Source health and discovery.** Suggest good free sources for a new desk, and warn when a publisher starts paywalling.
+- **Shareable editions.** Send a page or a whole paper to a friend as a PDF or link, without revealing your taste.
+- **Accessibility.** Larger-type and high-contrast modes, full keyboard and screen-reader support.
 
 ## Documentation
 
